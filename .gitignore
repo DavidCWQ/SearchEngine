@@ -1,0 +1,20 @@
+# Ignore everything except specific folders and files
+/*
+
+# Folders
+!/scripts
+!/src
+!/tasks
+
+# Files
+!/.gitignore
+!/LICENSE
+!/README.md
+!/SearchEngine.iml
+
+# MacOS junk files
+.DS_Store
+
+# Datasets
+/src/main/datasets/davisWiki/
+/src/main/datasets/guardian/
