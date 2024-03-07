@@ -202,9 +202,15 @@ public class PageRank {
 		for (int i = 0; i < a.length; i++) {
 			double sum = 0;
 			for (int j = 0; j < a.length; j++) {
+				// Calculate P_ij
+				double P_ij = 0;
+				Integer outNum = this.out[j];
+				HashMap<Integer, Boolean> outLinks = this.link.get(outNum);
+				if (outLinks != null)
+					if (outLinks.get(j) != null)
+						P_ij = 1.0 / this.out[j];
 				// Multiply each normalized element of the row
 				// by the corresponding element of the vector a
-				double P_ij = this.link.get(this.out[j]).get(j)? 1.0 / this.out[j] : 0;
 				sum += ((1 - BORED) * P_ij + BORED / a.length) * a[j];
 			}
 			aG[i] = sum;

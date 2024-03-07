@@ -22,4 +22,5 @@ javac -cp . -d ../target/classes \
     ../src/main/ir/SpellChecker.java \
     ../src/main/ir/SpellingOptionsDialog.java \
     ../src/main/ir/Tokenizer.java \
-    ../src/tests/TokenTest.java
+    ../src/tests/TokenTest.java \
+    ../src/main/ir/pagerank/PageRank.java
