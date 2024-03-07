@@ -26,9 +26,16 @@ public class HashedIndex implements Index {
      *  Inserts this token in the hashtable.
      */
     public void insert( String token, int docID, int offset ) {
-        //
-        // YOUR CODE HERE
-        //
+        PostingsList postList = this.getPostings(token);
+        // If PostingsList does not exist
+        if (postList == null) {
+            postList = new PostingsList(docID, offset);
+            this.index.put(token, postList);
+        }
+        // If PostingsList exists
+        else {
+            postList.insert(docID, offset);
+        }
     }
 
 
@@ -37,10 +44,9 @@ public class HashedIndex implements Index {
      *  if the term is not in the index.
      */
     public PostingsList getPostings( String token ) {
-        //
-        // REPLACE THE STATEMENT BELOW WITH YOUR CODE
-        //
-        return null;
+        // Returns the value to which the specified key is mapped, or
+        // defaultValue if this map contains no mapping for the key.
+        return index.getOrDefault(token, null);
     }
 
 

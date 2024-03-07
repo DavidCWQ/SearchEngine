@@ -115,9 +115,7 @@ public class Tokenizer {
             return true;
         if ( c >= 91 && c <= 96 )
             return true;
-        if ( c >= 123 && c <= 126 ) 
-            return true;
-        return false;
+        return c >= 123 && c <= 126;
     }
 
 

@@ -9,9 +9,6 @@ package ir;
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-import java.util.Iterator;
-import java.nio.charset.*;
-import java.io.*;
 
 
 /**
@@ -23,7 +20,7 @@ public class Query {
     /**
      *  Help class to represent one query term, with its associated weight. 
      */
-    class QueryTerm {
+    static class QueryTerm {
         String term;
         double weight;
         QueryTerm( String t, double w ) {
@@ -36,7 +33,7 @@ public class Query {
      *  Representation of the query as a list of terms with associated weights.
      *  In assignments 1 and 2, the weight of each term will always be 1.
      */
-    public ArrayList<QueryTerm> queryterm = new ArrayList<QueryTerm>();
+    public ArrayList<QueryTerm> queryTerm = new ArrayList<QueryTerm>();
 
     /**  
      *  Relevance feedback constant alpha (= weight of original query terms). 
@@ -66,7 +63,7 @@ public class Query {
     public Query( String queryString  ) {
         StringTokenizer tok = new StringTokenizer( queryString );
         while ( tok.hasMoreTokens() ) {
-            queryterm.add( new QueryTerm(tok.nextToken(), 1.0) );
+            queryTerm.add(new QueryTerm(tok.nextToken(), 1.0));
         }    
     }
     
@@ -75,7 +72,7 @@ public class Query {
      *  Returns the number of terms
      */
     public int size() {
-        return queryterm.size();
+        return queryTerm.size();
     }
     
     
@@ -84,7 +81,7 @@ public class Query {
      */
     public double length() {
         double len = 0;
-        for ( QueryTerm t : queryterm ) {
+        for ( QueryTerm t : queryTerm) {
             len += t.weight; 
         }
         return len;
@@ -96,8 +93,8 @@ public class Query {
      */
     public Query copy() {
         Query queryCopy = new Query();
-        for ( QueryTerm t : queryterm ) {
-            queryCopy.queryterm.add( new QueryTerm(t.term, t.weight) );
+        for ( QueryTerm t : queryTerm) {
+            queryCopy.queryTerm.add(new QueryTerm(t.term, t.weight));
         }
         return queryCopy;
     }

@@ -8,8 +8,8 @@
 package ir;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.*;
-import java.nio.charset.*;
 
 
 /*
@@ -26,7 +26,7 @@ import java.nio.charset.*;
 public class PersistentHashedIndex implements Index {
 
     /** The directory where the persistent index files are stored. */
-    public static final String INDEXDIR = "./index";
+    public static final String INDEXDIR = "../src/main/index";
 
     /** The dictionary file name */
     public static final String DICTIONARY_FNAME = "dictionary";
@@ -41,7 +41,11 @@ public class PersistentHashedIndex implements Index {
     public static final String DOCINFO_FNAME = "docInfo";
 
     /** The dictionary hash table on disk can fit this many entries. */
-    public static final long TABLESIZE = 611953L;
+    public static final int TABLESIZE = 611953;
+    static int HASHSIZE = 305947;
+
+    /** The size of an entry */
+    public static final int ENTRYSIZE = 12;  // 12-byte = 96-bit
 
     /** The dictionary hash table is stored in this file. */
     RandomAccessFile dictionaryFile;
@@ -55,16 +59,23 @@ public class PersistentHashedIndex implements Index {
     /** The cache as a main-memory hash map. */
     HashMap<String,PostingsList> index = new HashMap<String,PostingsList>();
 
+    // A dictionary that records collisions
+    HashMap<String, Integer> cDict = new HashMap<String, Integer>();
 
     // ===================================================================
 
     /**
      *   A helper class representing one entry in the dictionary hashtable.
      */ 
-    public class Entry {
-        //
-        //  YOUR CODE HERE
-        //
+    public static class Entry {
+        // YOUR CODE HERE
+        public long begin = 0L;
+        public int size = 0;
+
+        public Entry(long begin, int size) {
+            this.begin = begin;
+            this.size = size;
+        }
     }
 
 
@@ -85,8 +96,12 @@ public class PersistentHashedIndex implements Index {
 
         try {
             readDocInfo();
+            readCollisions();
         } catch ( FileNotFoundException e ) {
+            System.err.println("ERROR: FileNotFound!");
+            e.printStackTrace();
         } catch ( IOException e ) {
+            System.err.println("ERROR: IO Exception!");
             e.printStackTrace();
         }
     }
@@ -130,15 +145,30 @@ public class PersistentHashedIndex implements Index {
     //  Reading and writing to the dictionary file.
 
     /*
-     *  Writes an entry to the dictionary hash table file. 
+     *  Writes an entry to the dictionary hash table file.
      *
      *  @param entry The key of this entry is assumed to have a fixed length
      *  @param ptr   The place in the dictionary file to store the entry
      */
     void writeEntry( Entry entry, long ptr ) {
-        //
-        //  YOUR CODE HERE
-        //
+        // YOUR CODE HERE
+        // Create a ByteBuffer with the required size
+        ptr = ptr * ENTRYSIZE;
+        ByteBuffer buffer = ByteBuffer.allocate(ENTRYSIZE);
+
+        // Write the entry data to the buffer
+        buffer.putLong(entry.begin);
+        buffer.putInt(entry.size);
+
+        // Reset the buffer's position to zero
+        buffer.flip();
+
+        try {
+            dictionaryFile.seek(ptr);
+            dictionaryFile.write(buffer.array());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -146,10 +176,22 @@ public class PersistentHashedIndex implements Index {
      *
      *  @param ptr The place in the dictionary file where to start reading.
      */
-    Entry readEntry( long ptr ) {   
-        //
-        //  REPLACE THE STATEMENT BELOW WITH YOUR CODE 
-        //
+    Entry readEntry( long ptr ) {
+        // REPLACE THE STATEMENT BELOW WITH YOUR CODE
+        ptr = ptr * ENTRYSIZE;
+        byte[] data = new byte[ENTRYSIZE];
+        ByteBuffer buffer = ByteBuffer.allocate(ENTRYSIZE);
+
+        try {
+            dictionaryFile.seek(ptr);
+            dictionaryFile.readFully(data);
+            buffer.put(data, 0, data.length);
+            buffer.flip();
+            return new Entry(buffer.getLong(), buffer.getInt());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -185,8 +227,8 @@ public class PersistentHashedIndex implements Index {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] data = line.split(";");
-                docNames.put( new Integer(data[0]), data[1] );
-                docLengths.put( new Integer(data[0]), new Integer(data[2]) );
+                docNames.put( Integer.valueOf(data[0]), data[1] );
+                docLengths.put( Integer.valueOf(data[0]), Integer.valueOf(data[2]) );
             }
         }
         freader.close();
@@ -198,19 +240,50 @@ public class PersistentHashedIndex implements Index {
      */
     public void writeIndex() {
         int collisions = 0;
+        // A dictionary that records collision keys
+        HashMap<Integer, Long> kDict = new HashMap<Integer, Long>();
         try {
             // Write the 'docNames' and 'docLengths' hash maps to a file
             writeDocInfo();
 
+            // YOUR CODE HERE
             // Write the dictionary and the postings list
+            for (Map.Entry<String, PostingsList> entry : index.entrySet()) {
+                String token = entry.getKey();
+                int hash = Objects.hash(token) % HASHSIZE + HASHSIZE;  // in case it's negative
+                // System.out.print(hash + "\n"); [1, 611952]
+                int size = writeData(entry.getValue().toString(), free);
 
-            // 
-            //  YOUR CODE HERE
-            //
+                // Solution: Open Addressing to solve collisions
+                // Other solutions include rehashing and separate chaining.
+                boolean collide = false;
+                while (true) {
+                    if (kDict.containsKey(hash)) {
+                        if (!collide) {
+                            collisions++;
+                            collide = true;
+                        }
+                        hash++;  // Linear probing to detect empty address.
+                        if (hash == HASHSIZE - 1) {
+                            hash = 1;  // Reset to 1 if it reaches the end.
+                        }
+                    }
+                    else {
+                        kDict.put(hash, free);
+                        if (collide) {
+                            cDict.put(token, hash);
+                        }
+                        break;
+                    }
+                }
+                writeEntry(new Entry(free, size), hash);
+                free += size;
+            }
+            writeCollisions();
         } catch ( IOException e ) {
             e.printStackTrace();
         }
-        System.err.println( collisions + " collisions." );
+        System.err.println( collisions + " collisions." );  // 35614 in this case.
     }
 
 
@@ -222,10 +295,26 @@ public class PersistentHashedIndex implements Index {
      *  if the term is not in the index.
      */
     public PostingsList getPostings( String token ) {
-        //
-        //  REPLACE THE STATEMENT BELOW WITH YOUR CODE
-        //
-        return null;
+        // REPLACE THE STATEMENT BELOW WITH YOUR CODE
+        // If the token is already in the cache (index HashMap)
+        if (this.index.containsKey(token)) {
+            return this.index.get(token);
+        }
+
+        int hash = Objects.hash(token) % HASHSIZE + HASHSIZE;
+        Entry entry = readEntry(cDict.getOrDefault(token, hash));
+
+        if (entry == null) {
+            return null;
+        }
+
+        String postingsList;
+        postingsList = readData(entry.begin, entry.size);
+
+        PostingsList postings = PostingsList.toArray(postingsList);
+        this.index.put(token, postings);
+
+        return postings;
     }
 
 
@@ -233,9 +322,43 @@ public class PersistentHashedIndex implements Index {
      *  Inserts this token in the main-memory hashtable.
      */
     public void insert( String token, int docID, int offset ) {
-        //
-        //  YOUR CODE HERE
-        //
+        // YOUR CODE HERE
+        PostingsList postList = this.index.getOrDefault(token, null);
+        // If PostingsList does not exist
+        if (postList == null) {
+            postList = new PostingsList(docID, offset);
+            this.index.put(token, postList);
+        }
+        // If PostingsList exists
+        else {
+            postList.insert(docID, offset);
+        }
+    }
+
+    public void writeCollisions() {
+        try {
+            FileOutputStream fileOut = new FileOutputStream("index/collisions");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(cDict);
+            out.close(); fileOut.close();
+            System.out.println("Hash collisions have been saved in collisions.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void readCollisions() {
+        try {
+            FileInputStream fileIn = new FileInputStream("index/collisions");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            cDict = (HashMap<String, Integer>) in.readObject();
+            in.close(); fileIn.close();
+            System.out.println("Hash collisions have been read from file.");
+        } catch (EOFException e) {
+            System.err.println("Hash collisions reaches EOF.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -244,8 +367,8 @@ public class PersistentHashedIndex implements Index {
      */
     public void cleanup() {
         System.err.println( index.keySet().size() + " unique words" );
-        System.err.print( "Writing index to disk..." );
+        System.err.print( "Writing index to disk... " );
         writeIndex();
-        System.err.println( "done!" );
+        System.err.println( "Done! Good Job!" );
     }
 }

@@ -8,6 +8,7 @@
 
 # Files
 !/.gitignore
+!/.gitattributes
 !/LICENSE
 !/README.md
 !/SearchEngine.iml
@@ -18,3 +19,6 @@
 # Datasets
 /src/main/datasets/davisWiki/
 /src/main/datasets/guardian/
+
+# Indexed Data
+/src/main/index

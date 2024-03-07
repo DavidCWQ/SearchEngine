@@ -1,5 +1,8 @@
+package ir.pagerank;
+
 import java.util.*;
 import java.io.*;
+import java.lang.Math;
 
 public class PageRank {
 
@@ -48,14 +51,13 @@ public class PageRank {
      *   change more that EPSILON from one iteration to another.
      */
     final static double EPSILON = 0.0001;
-
-       
     /* --------------------------------------------- */
 
 
     public PageRank( String filename ) {
-	int noOfDocs = readDocs( filename );
-	iterate( noOfDocs, 1000 );
+		int noOfDocs = readDocs( filename );
+        int maxIterations = 1000;
+        iterate( noOfDocs, maxIterations);
     }
 
 
@@ -127,26 +129,99 @@ public class PageRank {
     /* --------------------------------------------- */
 
 
-    /*
-     *   Chooses a probability vector a, and repeatedly computes
-     *   aP, aP^2, aP^3... until aP^i = aP^(i+1).
+    /**
+     *  Chooses a probability vector a, and repeatedly computes
+     *  aP, aP^2, aP^3... until aP^i = aP^(i+1).
      */
     void iterate( int numberOfDocs, int maxIterations ) {
+		//
+		// YOUR CODE HERE
+		//
 
-	// YOUR CODE HERE
+		// Initialize vector a with length=1 and equal probabilities for all docs
+		double[] a = new double[numberOfDocs];
+		Arrays.fill(a, 1.0 / Math.sqrt(numberOfDocs));
 
+		// Perform a fixed number of iterations
+		for (int i = 0; i < maxIterations; i++) {
+			// Compute the matrix-vector multiplication aP
+			double[] aP = matrixVectorMul(a);
+			// Compute the exit condition
+			double length = this.distance(a, aP);
+			// Exit the loop if |a-aP|<ε is achieved
+			if (length < EPSILON) break;
+			// Update the probability vector a with a = aP
+			double norm = this.length(aP);
+			// Normalize vector a, to void round-off error
+			a = Arrays.stream(aP).map(val -> val / norm).toArray();
+		}
+
+		// Create an array of pairs (value, index)
+		int n = a.length; double[] val = a;
+		Integer[] indexes = new Integer[n];
+		for (int i = 0; i < n; i++) {
+			indexes[i] = i;
+		}
+
+		// Sort the array of indexes based on the values in arr
+		Arrays.sort(indexes, Comparator.comparingDouble(index -> val[index]));
+
+		// Print the 30 highest PageRank scores
+		for (int i = 0; i < 30; i++) {
+			// Use the sorted indexes to access the sorted values in arr
+			Integer idx = indexes[i];
+			System.out.println(docName[idx] + ": " + a[idx]);
+		}
     }
+
+	// Calculate the distance between point a and b
+	double distance(double[] a, double[] b) {
+		double sum = 0.0;
+		for (int j = 0; j < a.length; j++) {
+			double sumComponent = a[j] - b[j];
+			sum += sumComponent * sumComponent;
+		}
+        return Math.sqrt(sum);
+    }
+
+	// Calculate the modulus length of vector a
+	double length(double[] a) {
+		double[] origin = new double[a.length]; Arrays.fill(origin, 0.0);
+		return this.distance(a, origin);
+	}
+
+	/**
+	 *  Multiply the vector a with transition matrix G
+	 *  @return multiplication result aG where G = cP+(1-c)J
+	 */
+	double[] matrixVectorMul(double[] a) {
+		// Initialize result vector aG
+		double[] aG = new double[a.length];
+
+		// Perform the multiplication
+		for (int i = 0; i < a.length; i++) {
+			double sum = 0;
+			for (int j = 0; j < a.length; j++) {
+				// Multiply each normalized element of the row
+				// by the corresponding element of the vector a
+				double P_ij = this.link.get(this.out[j]).get(j)? 1.0 / this.out[j] : 0;
+				sum += ((1 - BORED) * P_ij + BORED / a.length) * a[j];
+			}
+			aG[i] = sum;
+		}
+
+		return aG;
+	}
 
 
     /* --------------------------------------------- */
 
-
     public static void main( String[] args ) {
-	if ( args.length != 1 ) {
-	    System.err.println( "Please give the name of the link file" );
-	}
-	else {
-	    new PageRank( args[0] );
-	}
+		if ( args.length != 1 ) {
+			System.err.println( "Please give the name of the link file" );
+		}
+		else {
+			new PageRank( args[0] );
+		}
     }
 }
