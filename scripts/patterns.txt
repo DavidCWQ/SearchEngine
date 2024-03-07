@@ -13,14 +13,27 @@
 // wish.
 
 
-// Twenty-four seven
-\d+/\d+
-
-
 // ADD YOUR PATTERNS HERE
+// E-mail
+[A-Za-z0-9._]{1,64}@[A-Za-z0-9._]{2,255}
+// "?[A-Za-z0-9._%+-\s]{1,64}"?@[A-Za-z0-9.-]{2,255}
+
+// URLs
+([A-Za-z]+:\/\/)([\w\$\&\+\-,_.\/:;\=\#\?\!\@]|%[0-9A-Fa-f]{2})+
+
+// Combined token
+([\w]+[\'\-,_.])+(([A-Za-z]+\.?)|([\d]+))
+// Twenty-four seven
+(\d+\/)+\d+
+// Money
+\$[\d]+
+// Time
+([\d]+[\:])+[\d]+
+// Positive num
+\+[\d]+
+// Exception
+'em
 
 // The patterns will be tried from top to bottom, so it is a
 // good idea to put more specific patterns above more general
 // patterns.
-
-
