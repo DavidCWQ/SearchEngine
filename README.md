@@ -74,6 +74,10 @@ You can also run the search engine with a persistent index if you have the datas
 java -cp target/classes -Xmx1g ir.Engine -d ./src/main/datasets/davisWiki -l dd2477.png -p patterns.txt -ni
 ```
 
+Please remember to recompile the project after making any changes to the source code. 
+
+> You can do this by running the `compile_all.sh` script (for Unix-like systems) or `compile_all.bat` batch file (for Windows) located in the `scripts` directory.
+
 ## License
 
 This project is licensed under the [Apache 2.0 License](LICENSE).

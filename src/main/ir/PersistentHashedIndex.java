@@ -26,7 +26,7 @@ import java.util.*;
 public class PersistentHashedIndex implements Index {
 
     /** The directory where the persistent index files are stored. */
-    public static final String INDEXDIR = "../src/main/index";
+    public static final String INDEXDIR = "src/main/index";
 
     /** The dictionary file name */
     public static final String DICTIONARY_FNAME = "dictionary";
@@ -337,7 +337,7 @@ public class PersistentHashedIndex implements Index {
 
     public void writeCollisions() {
         try {
-            FileOutputStream fileOut = new FileOutputStream("index/collisions");
+            FileOutputStream fileOut = new FileOutputStream(INDEXDIR + "/collisions");
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(cDict);
             out.close(); fileOut.close();
@@ -349,7 +349,7 @@ public class PersistentHashedIndex implements Index {
 
     public void readCollisions() {
         try {
-            FileInputStream fileIn = new FileInputStream("index/collisions");
+            FileInputStream fileIn = new FileInputStream(INDEXDIR + "/collisions");
             ObjectInputStream in = new ObjectInputStream(fileIn);
             cDict = (HashMap<String, Integer>) in.readObject();
             in.close(); fileIn.close();
