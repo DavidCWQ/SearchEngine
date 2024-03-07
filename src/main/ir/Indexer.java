@@ -60,8 +60,8 @@ public class Indexer {
                     String[] fs = f.list();
                     // an IO error could occur
                     if ( fs != null ) {
-                        for ( int i=0; i<fs.length; i++ ) {
-                            processFiles( new File( f, fs[i] ), is_indexing );
+                        for (String s : fs) {
+                            processFiles(new File(f, s), is_indexing);
                         }
                     }
                 } else {

@@ -68,7 +68,7 @@ public class Tokenizer {
     /** The next tokens to emit. */
     ArrayList<String> token_queue = new ArrayList<String>();
 
-    /** @code{true} if we've started reading tokens. */
+    /** True if we've started reading tokens. */
     boolean started_reading = false;
 
     /** The patterns matching non-standard words (e-mail addresses, etc.) */
@@ -129,7 +129,7 @@ public class Tokenizer {
             BufferedReader in = new BufferedReader( new FileReader( filename ));
             while (( line = in.readLine()) != null ) {
                 line = line.trim();
-                if ( !line.startsWith( "//" ) && line.length() > 0 ) {
+                if ( !line.startsWith( "//" ) && !line.isEmpty()) {
                     patterns.add( Pattern.compile( line ));
                 }
             }
@@ -166,11 +166,8 @@ public class Tokenizer {
             }
             return true;
         }
-        if ( c >= '!' && c <= '~' ) {
-            return true;
-        }
+        return c >= '!' && c <= '~';
         // This is not a character that can occur in a token.
-        return false;
     }
 
 
@@ -184,7 +181,7 @@ public class Tokenizer {
             readTokens();
             started_reading = true;
         }
-        if ( token_queue.size() == 0 ) 
+        if (token_queue.isEmpty())
             return readTokens();
         else 
             return true;
@@ -196,7 +193,7 @@ public class Tokenizer {
      *  are no more tokens.
      */
     public String nextToken() throws IOException { 
-        if ( token_queue.size() == 0 ) {
+        if (token_queue.isEmpty()) {
             if ( readTokens() )
                 return token_queue.remove( 0 );
             else
@@ -307,7 +304,7 @@ public class Tokenizer {
                 // The string before the punctuation sign is a token
                 // unless it is empty
                 String t = smallbuf.toString();
-                if ( t.length()>0 ) {
+                if (!t.isEmpty()) {
                     token_queue.add( t );
                     smallbuf = new StringBuffer();
                     tokens_found = true;
@@ -324,7 +321,7 @@ public class Tokenizer {
         // The string after the last punctuation sign is a token
         // unless it is empty
         String t = smallbuf.toString();
-        if ( t.length()>0 ) {
+        if (!t.isEmpty()) {
             token_queue.add( t );
             tokens_found = true;
         }   

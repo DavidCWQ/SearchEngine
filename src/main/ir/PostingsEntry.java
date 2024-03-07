@@ -10,7 +10,6 @@ package ir;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.StringTokenizer;
 import java.io.Serializable;
 
 public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {

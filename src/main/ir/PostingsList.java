@@ -10,12 +10,11 @@ package ir;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 
 public class PostingsList {
     
     /** The postings list */
-    private ArrayList<PostingsEntry> list = new ArrayList<PostingsEntry>();
+    private final ArrayList<PostingsEntry> list = new ArrayList<PostingsEntry>();
 
     @Override
     public String toString() {
@@ -136,19 +135,7 @@ public class PostingsList {
             int docID2 = entry2.docID;
 
             if (docID1 == docID2) {
-                int pp1 = 0, pp2 = 0;  // postings position ptr.
-                ArrayList<Integer> positions1 = entry1.positions;
-                ArrayList<Integer> positions2 = entry2.positions;
-                ArrayList<Integer> positions = new ArrayList<Integer>();
-
-                while (pp1 < positions1.size() && pp2 < positions2.size()) {
-                    int offset = positions2.get(pp2) - positions1.get(pp1);
-                    if (0 <= offset && offset <= k) {
-                        positions.add(positions2.get(pp2++));
-                    }
-                    else if (positions2.get(pp2) > positions1.get(pp1)) pp1++;
-                    else pp2++;
-                }
+                ArrayList<Integer> positions = getIntegers(k, entry1, entry2);
                 // Remove nothing in this case
                 // e.g. a big pig is a big pig, pig2 - big1 > k.
 
@@ -164,6 +151,23 @@ public class PostingsList {
             else { j++; }
         }
         return result;
+    }
+
+    private static ArrayList<Integer> getIntegers(int k, PostingsEntry entry1, PostingsEntry entry2) {
+        int pp1 = 0, pp2 = 0;  // postings position ptr.
+        ArrayList<Integer> positions1 = entry1.positions;
+        ArrayList<Integer> positions2 = entry2.positions;
+        ArrayList<Integer> positions = new ArrayList<Integer>();
+
+        while (pp1 < positions1.size() && pp2 < positions2.size()) {
+            int offset = positions2.get(pp2) - positions1.get(pp1);
+            if (0 <= offset && offset <= k) {
+                positions.add(positions2.get(pp2++));
+            }
+            else if (positions2.get(pp2) > positions1.get(pp1)) pp1++;
+            else pp2++;
+        }
+        return positions;
     }
 
     public void sortByScore() {

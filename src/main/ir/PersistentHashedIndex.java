@@ -91,7 +91,7 @@ public class PersistentHashedIndex implements Index {
             dictionaryFile = new RandomAccessFile( INDEXDIR + "/" + DICTIONARY_FNAME, "rw" );
             dataFile = new RandomAccessFile( INDEXDIR + "/" + DATA_FNAME, "rw" );
         } catch ( IOException e ) {
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
         }
 
         try {
@@ -99,10 +99,10 @@ public class PersistentHashedIndex implements Index {
             readCollisions();
         } catch ( FileNotFoundException e ) {
             System.err.println("ERROR: FileNotFound!");
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
         } catch ( IOException e ) {
             System.err.println("ERROR: IO Exception!");
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
         }
     }
 
@@ -118,7 +118,7 @@ public class PersistentHashedIndex implements Index {
             dataFile.write( data );
             return data.length;
         } catch ( IOException e ) {
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
             return -1;
         }
     }
@@ -134,7 +134,7 @@ public class PersistentHashedIndex implements Index {
             dataFile.readFully( data );
             return new String(data);
         } catch ( IOException e ) {
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
             return null;
         }
     }
@@ -167,7 +167,7 @@ public class PersistentHashedIndex implements Index {
             dictionaryFile.seek(ptr);
             dictionaryFile.write(buffer.array());
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
         }
     }
 
@@ -190,7 +190,7 @@ public class PersistentHashedIndex implements Index {
             return new Entry(buffer.getLong(), buffer.getInt());
 
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
         }
         return null;
     }
@@ -281,7 +281,7 @@ public class PersistentHashedIndex implements Index {
             }
             writeCollisions();
         } catch ( IOException e ) {
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
         }
         System.err.println( collisions + " collisions." );  // 35614 in this case.
     }
@@ -343,7 +343,7 @@ public class PersistentHashedIndex implements Index {
             out.close(); fileOut.close();
             System.out.println("Hash collisions have been saved in collisions.");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
         }
     }
 
@@ -357,7 +357,7 @@ public class PersistentHashedIndex implements Index {
         } catch (EOFException e) {
             System.err.println("Hash collisions reaches EOF.");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("An error occurred: " + e.getMessage());
         }
     }
 
