@@ -6,7 +6,7 @@ import java.lang.Math;
 
 public class PageRank {
 
-    /**  
+    /**
      *   Maximal number of documents. We're assuming here that we
      *   don't have more docs than we can keep in main memory.
      */
@@ -140,7 +140,7 @@ public class PageRank {
 
 		// Initialize vector a with length=1 and equal probabilities for all docs
 		double[] a = new double[numberOfDocs];
-		Arrays.fill(a, 1.0 / Math.sqrt(numberOfDocs));
+		Arrays.fill(a, 1.0 / numberOfDocs);
 
 		// Perform a fixed number of iterations
 		for (int i = 0; i < maxIterations; i++) {
@@ -148,10 +148,13 @@ public class PageRank {
 			double[] aP = matrixVectorMul(a);
 			// Compute the exit condition
 			double length = this.distance(a, aP);
-			// Exit the loop if |a-aP|<ε is achieved
+			// Exit the loop if |a-aP|<ε0 is achieved
 			if (length < EPSILON) break;
+			// Show the iteration progress
+			System.out.println("Iteration: " + i + ", ε: " + length);
 			// Update the probability vector a with a = aP
-			double norm = this.length(aP);
+			double dim = 1.0;
+			double norm = this.norm(aP, dim);
 			// Normalize vector a, to void round-off error
 			a = Arrays.stream(aP).map(val -> val / norm).toArray();
 		}
@@ -185,9 +188,12 @@ public class PageRank {
     }
 
 	// Calculate the modulus length of vector a
-	double length(double[] a) {
-		double[] origin = new double[a.length]; Arrays.fill(origin, 0.0);
-		return this.distance(a, origin);
+	double norm(double[] a, double dim) {
+		double sum = 0.0;
+        for (double sumComponent : a) {
+            sum += Math.pow(sumComponent, dim);
+        }
+		return Math.pow(sum, 1.0 / dim);
 	}
 
 	/**
@@ -204,11 +210,15 @@ public class PageRank {
 			for (int j = 0; j < a.length; j++) {
 				// Calculate P_ij
 				double P_ij = 0;
-				Integer outNum = this.out[j];
-				HashMap<Integer, Boolean> outLinks = this.link.get(outNum);
-				if (outLinks != null)
-					if (outLinks.get(j) != null)
+				// If the page has outlinks
+				if (this.link.get(j) != null) {
+					if (this.link.get(j).get(i) != null)
 						P_ij = 1.0 / this.out[j];
+				}
+				// If the page doesn't
+				else {
+					P_ij = 1.0 / a.length;
+				}
 				// Multiply each normalized element of the row
 				// by the corresponding element of the vector a
 				sum += ((1 - BORED) * P_ij + BORED / a.length) * a[j];
