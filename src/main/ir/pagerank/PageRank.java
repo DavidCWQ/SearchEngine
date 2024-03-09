@@ -51,13 +51,16 @@ public class PageRank {
      *   change more that EPSILON from one iteration to another.
      */
     final static double EPSILON = 0.0001;
+
+	/** The directory where the pagerank related files are stored. */
+	public static final String PAGERANK_DIR = "src/main/ir/pagerank/";
     /* --------------------------------------------- */
 
 
     public PageRank( String filename ) {
-		int noOfDocs = readDocs( filename );
+		int noOfDocs = readDocs( PAGERANK_DIR + filename );
         int maxIterations = 1000;
-        iterate( noOfDocs, maxIterations);
+        iterate( noOfDocs, maxIterations );
     }
 
 
@@ -132,11 +135,10 @@ public class PageRank {
     /**
      *  Chooses a probability vector a, and repeatedly computes
      *  aP, aP^2, aP^3... until aP^i = aP^(i+1).
+	 *  Save the result as txt file named "pagerank_result.txt"
      */
     void iterate( int numberOfDocs, int maxIterations ) {
-		//
 		// YOUR CODE HERE
-		//
 
 		// Initialize vector a with length=1 and equal probabilities for all docs
 		double[] a = new double[numberOfDocs];
@@ -174,6 +176,18 @@ public class PageRank {
 			// Use the sorted indexes to access the sorted values in arr
 			Integer idx = indexes[i];
 			System.out.println(docName[idx] + ": " + a[idx]);
+		}
+
+		// Save the PageRank result in txt file
+		try {
+			FileWriter writer = new FileWriter(PAGERANK_DIR + "pagerank_result.txt");
+			for (int i = 0; i < a.length; i++) {
+				Integer idx = indexes[i];
+				writer.write(docName[idx] + ": " + a[idx] + System.lineSeparator());
+			}
+			writer.close();
+		} catch (IOException e) {
+			System.err.println("Error writing to file: " + e.getMessage());
 		}
     }
 
