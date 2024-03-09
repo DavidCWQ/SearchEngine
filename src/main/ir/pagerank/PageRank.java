@@ -151,7 +151,7 @@ public class PageRank {
 			// Exit the loop if |a-aP|<ε0 is achieved
 			if (length < EPSILON) break;
 			// Show the iteration progress
-			System.out.println("Iteration: " + i + ", ε: " + length);
+			// System.out.println("Iteration: " + i + ", ε: " + length);
 			// Update the probability vector a with a = aP
 			double dim = 1.0;
 			double norm = this.norm(aP, dim);
@@ -167,7 +167,7 @@ public class PageRank {
 		}
 
 		// Sort the array of indexes based on the values in arr
-		Arrays.sort(indexes, Comparator.comparingDouble(index -> val[index]));
+		Arrays.sort(indexes, Comparator.comparingDouble(index -> val[(int) index]).reversed());
 
 		// Print the 30 highest PageRank scores
 		for (int i = 0; i < 30; i++) {
