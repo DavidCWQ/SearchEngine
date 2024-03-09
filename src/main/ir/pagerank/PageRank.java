@@ -145,6 +145,8 @@ public class PageRank {
 		Arrays.fill(a, 1.0 / numberOfDocs);
 
 		// Perform a fixed number of iterations
+		System.out.println("Start Power Iteration Calculation: ");
+		System.out.println("======================================");
 		for (int i = 0; i < maxIterations; i++) {
 			// Compute the matrix-vector multiplication aP
 			double[] aP = matrixVectorMul(a);
@@ -153,13 +155,14 @@ public class PageRank {
 			// Exit the loop if |a-aP|<ε0 is achieved
 			if (length < EPSILON) break;
 			// Show the iteration progress
-			// System.out.println("Iteration: " + i + ", ε: " + length);
+			System.out.println("Iteration: " + i + ", ε: " + length);
 			// Update the probability vector a with a = aP
 			double dim = 1.0;
 			double norm = this.norm(aP, dim);
 			// Normalize vector a, to void round-off error
 			a = Arrays.stream(aP).map(val -> val / norm).toArray();
 		}
+		System.out.println("======================================");
 
 		// Create an array of pairs (value, index)
 		int n = a.length; double[] val = a;
@@ -172,11 +175,14 @@ public class PageRank {
 		Arrays.sort(indexes, Comparator.comparingDouble(index -> val[(int) index]).reversed());
 
 		// Print the 30 highest PageRank scores
+		System.out.println("Print the 30 highest PageRank scores: ");
+		System.out.println("======================================");
 		for (int i = 0; i < 30; i++) {
 			// Use the sorted indexes to access the sorted values in arr
 			Integer idx = indexes[i];
 			System.out.println(docName[idx] + ": " + a[idx]);
 		}
+		System.out.println("===================================");
 
 		// Save the PageRank result in txt file
 		try {
@@ -186,6 +192,7 @@ public class PageRank {
 				writer.write(docName[idx] + ": " + a[idx] + System.lineSeparator());
 			}
 			writer.close();
+			System.out.println("Result saved in pagerank_result.txt");
 		} catch (IOException e) {
 			System.err.println("Error writing to file: " + e.getMessage());
 		}
