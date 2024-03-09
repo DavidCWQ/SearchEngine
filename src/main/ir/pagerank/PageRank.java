@@ -54,6 +54,9 @@ public class PageRank {
 
 	/** The directory where the pagerank related files are stored. */
 	public static final String PAGERANK_DIR = "src/main/ir/pagerank/";
+
+	/** The directory where the pagerank result are stored. */
+	public static final String RESULT_DIR = "src/main/resources/";
     /* --------------------------------------------- */
 
 
@@ -186,7 +189,7 @@ public class PageRank {
 
 		// Save the PageRank result in txt file
 		try {
-			FileWriter writer = new FileWriter(PAGERANK_DIR + "pagerank_result.txt");
+			FileWriter writer = new FileWriter(RESULT_DIR + "pagerank_result.txt");
 			for (int i = 0; i < a.length; i++) {
 				Integer idx = indexes[i];
 				writer.write(docName[idx] + ": " + a[idx] + System.lineSeparator());

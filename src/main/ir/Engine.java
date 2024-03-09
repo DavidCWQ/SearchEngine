@@ -52,6 +52,12 @@ public class Engine {
     /** For persistent indexes, we might not need to do any indexing. */
     boolean is_indexing = true;
 
+    /** The directory where the resources are located. */
+    public static final String RESOURCE_DIR = "src/main/resources/";
+
+    /** The directory where the datasets are located. */
+    public static final String DATASET_DIR = "src/main/datasets/";
+
 
     /* ----------------------------------------------- */
 
@@ -63,7 +69,7 @@ public class Engine {
     public Engine( String[] args ) {
         decodeArgs( args );
         indexer = new Indexer( index, kgIndex, patterns_file );
-        searcher = rank_file.isEmpty()? new Searcher( index, kgIndex ) : null;
+        searcher = new Searcher( index, kgIndex );
         gui = new SearchGUI( this );
         gui.init();
         /* 
@@ -107,25 +113,25 @@ public class Engine {
                 case "-d":
                     i++;
                     if (i < args.length) {
-                        dirNames.add(args[i++]);
+                        dirNames.add(DATASET_DIR + args[i++]);
                     }
                     break;
                 case "-p":
                     i++;
                     if (i < args.length) {
-                        patterns_file = args[i++];
+                        patterns_file = RESOURCE_DIR + args[i++];
                     }
                     break;
                 case "-l":
                     i++;
                     if (i < args.length) {
-                        pic_file = args[i++];
+                        pic_file = RESOURCE_DIR + args[i++];
                     }
                     break;
                 case "-r":
                     i++;
                     if (i < args.length) {
-                        rank_file = args[i++];
+                        rank_file = RESOURCE_DIR + args[i++];
                     }
                     break;
                 case "-ni":

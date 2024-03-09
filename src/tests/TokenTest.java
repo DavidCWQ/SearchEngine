@@ -19,7 +19,9 @@ public class TokenTest {
     boolean case_folding = false;
     boolean remove_diacritics = false;
     boolean remove_punctuation = false;
-    String patternsfile = null;
+    final static String PATTERN_DIR = "src/main/resources/";
+    final static String TEST_RES_DIR = "src/tests/resources/";
+    String patterns_file = null;
     String filename = null;
 
     /**
@@ -33,14 +35,14 @@ public class TokenTest {
                 String[] fs = f.list();
                 // an IO error could occur
                 if ( fs != null ) {
-                    for ( int i=0; i<fs.length; i++ ) {
-                        processFiles( new File( f, fs[i] ));
+                    for (String s : fs) {
+                        processFiles(new File(f, s));
                     }
                 }
             } else {
                 try {
                     Reader reader = new InputStreamReader( new FileInputStream(f), StandardCharsets.UTF_8 );
-                    Tokenizer tok = new Tokenizer( reader, case_folding, remove_diacritics, remove_punctuation, patternsfile );
+                    Tokenizer tok = new Tokenizer( reader, case_folding, remove_diacritics, remove_punctuation, patterns_file);
                     int offset = 0;
                     PrintStream out = new PrintStream( System.out, true, "UTF-8" );
                     while ( tok.hasMoreTokens() ) { 
@@ -84,7 +86,7 @@ public class TokenTest {
             } else if ( args[i].equals( "-f" )) {
                 i++;
                 if ( i<args.length ) {
-                    t.filename = args[i];
+                    t.filename = TEST_RES_DIR + args[i];
                     i++;
                 } else {
                     printHelpMessage();
@@ -93,7 +95,7 @@ public class TokenTest {
             } else if ( args[i].equals( "-p" )) {
                 i++;
                 if ( i<args.length ) {
-                    t.patternsfile = args[i];
+                    t.patterns_file = PATTERN_DIR + args[i];
                     i++;
                 } else {
                     printHelpMessage();

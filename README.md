@@ -65,13 +65,17 @@ Unzip them in the `src/main/datasets` directory.
 Once the compilation is successful, you can run the search engine using the provided scripts. Here's an example script command to get started:
 
 ```bash
-java -cp target/classes -Xmx1g ir.Engine -d ./src/main/datasets/davisWiki -l dd2477.png -p patterns.txt
+cd ..
+```
+
+```bash
+java -cp target/classes -Xmx1g ir.Engine -d davisWiki -l dd2477.png -p patterns.txt
 ```
 
 You can also run the search engine with a persistent index if you have the dataset indexed:
 
 ```bash
-java -cp target/classes -Xmx1g ir.Engine -d ./src/main/datasets/davisWiki -l dd2477.png -p patterns.txt -ni
+java -cp target/classes -Xmx1g ir.Engine -d davisWiki -l dd2477.png -p patterns.txt -ni
 ```
 
 Please remember to recompile the project after making any changes to the source code. 
