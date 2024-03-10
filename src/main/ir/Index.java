@@ -22,6 +22,9 @@ public interface Index {
     /** Mapping from document identifier to document length. */
     public HashMap<Integer,Integer> docLengths = new HashMap<Integer,Integer>();
 
+    /** Mapping from document identifiers to pagerank scores. */
+    public HashMap<Integer, Double> docScores = new HashMap<Integer, Double>();
+
     /** Inserts a token into the index. */
     public void insert( String token, int docID, int offset );
 
@@ -32,4 +35,3 @@ public interface Index {
     public void cleanup();
 
 }
-

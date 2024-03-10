@@ -46,8 +46,11 @@ public class Engine {
     /** The file containing the logo. */
     String pic_file = "";
 
-    /** The file containing the pageranks. */
+    /** The file containing the pagerank scores. */
     String rank_file = "";
+
+    /** The file containing the pagerank IDs and corresponding docNames. */
+    String title_file = "";
 
     /** For persistent indexes, we might not need to do any indexing. */
     boolean is_indexing = true;
@@ -86,7 +89,7 @@ public class Engine {
                     File dokDir = new File(dirName);
                     indexer.processFiles(dokDir, is_indexing);
                     /*
-                     * MY CODE here. Otherwise,
+                     * MY CODE here (merge scalable persistent hashed index). Otherwise,
                      * Exception in thread "main" java.lang.OutOfMemoryError: GC overhead limit exceeded
                      * */
                     // index.cleanup();
@@ -96,7 +99,23 @@ public class Engine {
                 index.cleanup();
             }
         } else {
-            gui.displayInfoText( "Index is loaded from disk" );
+            gui.displayInfoText( "Index is loaded from disk." );
+        }
+
+        /*
+         *   Calls the indexer to load pagerank result in resources.
+         *   Access to the index is synchronized since we don't want to
+         *   search at the same time we're loading pagerank (this might
+         *   corrupt the index).
+         */
+        if (!rank_file.isEmpty() && !title_file.isEmpty()) {
+            synchronized ( indexLock ) {
+                gui.displayInfoText( "Index is loaded from disk." + System.lineSeparator() +
+                        "Checking Pagerank, please wait..." );
+                indexer.getPageRank(rank_file, title_file);
+                gui.displayInfoText( "Index is loaded from disk." + System.lineSeparator() +
+                        "Pagerank is loaded from disk." );
+            }
         }
     }
 
@@ -132,6 +151,12 @@ public class Engine {
                     i++;
                     if (i < args.length) {
                         rank_file = RESOURCE_DIR + args[i++];
+                    }
+                    break;
+                case "-t":
+                    i++;
+                    if (i < args.length) {
+                        title_file = RESOURCE_DIR + args[i++];
                     }
                     break;
                 case "-ni":

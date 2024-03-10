@@ -99,5 +99,9 @@ public class Indexer {
         if (kgIndex != null)
             kgIndex.insert(token);
     }
+
+    public void getPageRank(String rankFile, String titleFile) {
+
+    }
 }
 
