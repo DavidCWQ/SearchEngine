@@ -113,10 +113,10 @@ public class Engine {
          */
         if (!rank_file.isEmpty() && !title_file.isEmpty()) {
             synchronized ( indexLock ) {
-                gui.displayInfoText( "Index is loaded from disk." + System.lineSeparator() +
+                gui.displayInfoText( "Index is loaded from disk. " + System.lineSeparator() +
                         "Checking Pagerank, please wait..." );
                 indexer.getPageRank(rank_file, title_file);
-                gui.displayInfoText( "Index is loaded from disk." + System.lineSeparator() +
+                gui.displayInfoText( "Index is loaded from disk. " + System.lineSeparator() +
                         "Pagerank is loaded from disk." );
             }
         }
