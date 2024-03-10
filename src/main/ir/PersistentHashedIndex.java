@@ -99,7 +99,11 @@ public class PersistentHashedIndex implements Index {
             readCollisions();
         } catch ( FileNotFoundException e ) {
             System.err.println("ERROR: FileNotFound!");
-            System.err.println("An error occurred: " + e.getMessage());
+            String errMessage = e.getMessage();
+            System.err.println("An error occurred: " + errMessage);
+            System.out.println("Indexing restarts: saved in '"
+                    + errMessage.substring(0, errMessage.lastIndexOf("\\"))
+                    + "'. Please ensure that '-ni' option is removed from your CL arguments.");
         } catch ( IOException e ) {
             System.err.println("ERROR: IO Exception!");
             System.err.println("An error occurred: " + e.getMessage());
@@ -279,11 +283,11 @@ public class PersistentHashedIndex implements Index {
                 writeEntry(new Entry(free, size), hash);
                 free += size;
             }
+            System.err.println( collisions + " collisions." );  // 35828 in this case.
             writeCollisions();
         } catch ( IOException e ) {
             System.err.println("An error occurred: " + e.getMessage());
         }
-        System.err.println( collisions + " collisions." );  // 35614 in this case.
     }
 
 
@@ -366,9 +370,9 @@ public class PersistentHashedIndex implements Index {
      *  Write index to file after indexing is done.
      */
     public void cleanup() {
-        System.err.println( index.keySet().size() + " unique words" );
-        System.err.print( "Writing index to disk... " );
+        System.out.println( index.keySet().size() + " unique words" );
+        System.out.print( "Writing index to disk... " );
         writeIndex();
-        System.err.println( "Done! Good Job!" );
+        System.out.println( "Done! Good Job!" );
     }
 }
