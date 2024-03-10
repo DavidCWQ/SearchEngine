@@ -61,6 +61,9 @@ public class Engine {
     /** The directory where the datasets are located. */
     public static final String DATASET_DIR = "src/main/datasets/";
 
+    /** The directory where rank-titles are located. */
+    public static final String TITLE_DIR = "src/main/ir/pagerank/";
+
 
     /* ----------------------------------------------- */
 
@@ -156,7 +159,7 @@ public class Engine {
                 case "-t":
                     i++;
                     if (i < args.length) {
-                        title_file = RESOURCE_DIR + args[i++];
+                        title_file = TITLE_DIR + args[i++];
                     }
                     break;
                 case "-ni":
