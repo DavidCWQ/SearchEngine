@@ -8,6 +8,7 @@
 package ir;
 
 import java.util.HashMap;
+import java.lang.Math;
 
 /**
  *  Searches an index for results of a query.
@@ -19,6 +20,9 @@ public class Searcher {
 
     /** The k-gram index to be searched by this Searcher */
     KGramIndex kgIndex;
+
+    /** The ratio to balance between TF-IDF and PageRank scores. */
+    double RANK_RATIO = 0.96;
     
     /** Constructor */
     public Searcher( Index index, KGramIndex kgIndex ) {
@@ -88,22 +92,22 @@ public class Searcher {
         return result;
     }
 
+    /**
+     * Performs a ranked search for the given query using the specified
+     * ranking and normalization types.
+     *
+     * @param query       The query to search for.
+     * @param rankingType The ranking type to use for scoring.
+     * @param normType    The normalization type for the scores.
+     * @return A PostingsList containing documents sorted by their ranking scores.
+     */
     private PostingsList searchRanked(Query query, RankingType rankingType,
                                       NormalizationType normType) {
         // If the query is an empty one
         if (query.queryTerm.isEmpty()) {
             return null;
         }
-        switch (rankingType) {
-            case TF_IDF:
-                return cosineScore(query, normType);
-            case PAGERANK:
-                return pageRank(query);
-            case COMBINATION:
-                return comboRank(query);
-            default:
-                throw new IllegalArgumentException();
-        }
+        return getRankResult(query, rankingType, normType);
     }
 
     /**
@@ -117,22 +121,28 @@ public class Searcher {
         return Math.log10(n/df);
     }
 
-    /** Compute vector space scores by the product of the query vector
-     *  and doc vectors. (P136/173)
-     *  @param query is the searching query
-     *  @param normType NUMBER_OF_WORDS(per doc), EUCLIDEAN(magnitude)
-     *  @return a list giving docID and the cos score with query phrase
+    /**
+     *  Calculates the ranking scores for documents based on the given query, and
+     *  ranking type, and normalization type. TF-IDF type computes vector space
+     *  scores by the product of the query vector and doc vectors. (P136/173)
+     *  PageRank type computes rank scores by num of outlinks of documents.
+     *
+     *  @param query is the searching query, containing query terms and weights.
+     *  @param normType NUMBER_OF_WORDS(per doc), EUCLIDEAN(magnitude), etc.
+     *  @param rankingType is the ranking type to use for scoring and sorting.
+     *  @return a posting list containing docIDs sorted by their ranking scores
+     *          given query phrase
      */
-    private PostingsList cosineScore(Query query, NormalizationType normType) {
-        // Create a hash map to store the scores of all documents.
+    private PostingsList getRankResult(Query query, RankingType rankingType,
+                                       NormalizationType normType) {
         HashMap<Integer, Double> docScores = new HashMap<>();
         for (Query.QueryTerm queryTerm : query.queryTerm) {
             String term = queryTerm.term;
             // The postings list for term t
             PostingsList postings = index.getPostings(term);
             for (PostingsEntry doc : postings.getList()) {
-                // score = tf * idf
-                double score = doc.getLogFreqWeight() * queryTerm.weight * getInvDocFreq(term);
+                // Score = TF-IDF Score * (1 - RANK_RATIO) + PageRank Score * RANK_RATIO
+                double score = this.getRankScore(doc, term, queryTerm.weight, rankingType, normType);
 
                 // If the doc already exists in docScores array, add the SCORE to it.
                 int docID = doc.docID;
@@ -148,10 +158,7 @@ public class Searcher {
 
         PostingsList result = null;
         for (Integer docID : docScores.keySet()) {
-            // Normalization
-            int docLength = index.docLengths.get(docID);
-            double docScore = docScores.get(docID) / docLength;
-
+            double docScore = docScores.get(docID);
             // If it is the first intersection
             if (result == null) { result = new PostingsList(new PostingsEntry(docID, docScore)); }
             // If it is NOT the first time
@@ -164,12 +171,45 @@ public class Searcher {
         return result;
     }
 
-    private PostingsList pageRank(Query query) {
-        return null;
-    }
-
-    private PostingsList comboRank(Query query) {
-        return null;
+    /**
+     * Calculates the ranking score for a query based on the given ranking type.
+     * <p>
+     * Reference for COMBINATION: Buntine, Wray L. et al. “Topic-specific scoring of
+     * documents for relevant retrieval.” International Conference on Machine Learning
+     * (2005).
+     *
+     * @param doc         The PostingsEntry representing the document.
+     * @param term        The query term in query phrase.
+     * @param queryWeight The weight of the query term.
+     * @param rankingType The ranking type to use for scoring.
+     * @param normType    The normalization type for the score.
+     *
+     * @return The ranking score for the document.
+     * @throws IllegalArgumentException If an invalid ranking type is provided.
+     */
+    private double getRankScore (PostingsEntry doc, String term, double queryWeight,
+                                 RankingType rankingType, NormalizationType normType) {
+        switch (rankingType) {
+            case TF_IDF: {
+                double score1 = doc.getLogFreqWeight() * queryWeight * getInvDocFreq(term);
+                // TF-IDF res Normalization
+                int docLength = index.docLengths.get(doc.docID);
+                return score1 / docLength;
+            }
+            case PAGERANK: {
+                return (Math.exp(10 * index.docRanks.get(doc.docID)) - 0.99) * queryWeight;
+            }
+            case COMBINATION: {
+                // Calculate combined score using a weighted combination of TF-IDF and PageRank.
+                double score1 = doc.getLogFreqWeight() * queryWeight * getInvDocFreq(term);
+                double score2 = (Math.exp(10 * index.docRanks.get(doc.docID)) - 0.99) * queryWeight;
+                // TF-IDF res Normalization
+                int docLength = index.docLengths.get(doc.docID);
+                return score1 / docLength * (1 - RANK_RATIO) + score2 * RANK_RATIO;
+            }
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
 }

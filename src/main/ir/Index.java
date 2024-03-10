@@ -8,7 +8,6 @@
 package ir;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  *  Defines some common data structures and methods that all types of
@@ -23,7 +22,7 @@ public interface Index {
     public HashMap<Integer,Integer> docLengths = new HashMap<Integer,Integer>();
 
     /** Mapping from document identifiers to pagerank scores. */
-    public HashMap<Integer, Double> docScores = new HashMap<Integer, Double>();
+    public HashMap<Integer, Double> docRanks = new HashMap<Integer, Double>();
 
     /** Inserts a token into the index. */
     public void insert( String token, int docID, int offset );

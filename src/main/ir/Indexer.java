@@ -141,9 +141,10 @@ public class Indexer {
                 // Mapping true ID -> docName -> fake ID -> pagerank score
                 for (Integer id : index.docNames.keySet()) {
                     String name = index.docNames.get(id);
+                    name = name.substring(name.lastIndexOf("\\") + 1);
                     Integer f_id = docName.get(name);
                     Double score = docRank.get(f_id);
-                    index.docScores.put( id, score );
+                    index.docRanks.put( id, score );
                 }
             }
             catch (NullPointerException e) {
