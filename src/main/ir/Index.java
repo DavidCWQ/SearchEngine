@@ -18,11 +18,14 @@ public interface Index {
     /** Mapping from document identifiers to document names. */
     public HashMap<Integer,String> docNames = new HashMap<Integer,String>();
     
-    /** Mapping from document identifier to document length. */
+    /** Mapping from document identifier to document Manhattan length. */
     public HashMap<Integer,Integer> docLengths = new HashMap<Integer,Integer>();
 
+    /** Mapping from document identifier to document Euclidean length. */
+    public HashMap<Integer,Double> docEucLengths = new HashMap<Integer,Double>();
+
     /** Mapping from document identifiers to pagerank scores. */
-    public HashMap<Integer, Double> docRanks = new HashMap<Integer, Double>();
+    public HashMap<Integer,Double> docRanks = new HashMap<Integer,Double>();
 
     /** Inserts a token into the index. */
     public void insert( String token, int docID, int offset );

@@ -66,17 +66,26 @@ public class Indexer {
                 } else {
                     // First register the document and get a docID
                     int docID = generateDocID();
-                    if ( docID%1000 == 0 ) System.err.println( "Indexed " + docID + " files" );
+                    if ( docID%1000 == 0 ) System.out.println( "Indexed " + docID + " files" );
                     try {
                         Reader reader = new InputStreamReader( new FileInputStream(f), StandardCharsets.UTF_8 );
                         Tokenizer tok = new Tokenizer( reader, true, false, true, patterns_file );
+                        HashMap<String, Integer> termFreq = new HashMap<String, Integer>();
                         int offset = 0;
                         while ( tok.hasMoreTokens() ) {
                             String token = tok.nextToken();
                             insertIntoIndex( docID, token, offset++ );
+                            termFreq.compute(token, (key, value) -> (value == null) ? 1 : value + 1);
                         }
                         index.docNames.put( docID, f.getPath() );
                         index.docLengths.put( docID, offset );
+                        // NEW CODE HERE.
+                        double sum = 0.0;
+                        for (double sumComponent : termFreq.values()) {
+                            sum += Math.pow(sumComponent, 2);
+                        }
+                        index.docEucLengths.put(docID, Math.pow(sum, 0.5));
+                        // NEW CODE ENDS.
                         reader.close();
                     } catch ( IOException e ) {
                         System.err.println( "Warning: IOException during indexing." );

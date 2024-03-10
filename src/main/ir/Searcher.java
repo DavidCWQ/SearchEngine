@@ -194,7 +194,8 @@ public class Searcher {
                 double score1 = doc.getLogFreqWeight() * queryWeight * getInvDocFreq(term);
                 // TF-IDF res Normalization
                 int docLength = index.docLengths.get(doc.docID);
-                return score1 / docLength;
+                double eucLength = index.docEucLengths.get(doc.docID);
+                return score1 / (normType == NormalizationType.EUCLIDEAN? eucLength : docLength);
             }
             case PAGERANK: {
                 return (Math.exp(10 * index.docRanks.get(doc.docID)) - 0.99) * queryWeight;
@@ -205,7 +206,9 @@ public class Searcher {
                 double score2 = (Math.exp(10 * index.docRanks.get(doc.docID)) - 0.99) * queryWeight;
                 // TF-IDF res Normalization
                 int docLength = index.docLengths.get(doc.docID);
-                return score1 / docLength * (1 - RANK_RATIO) + score2 * RANK_RATIO;
+                double eucLength = index.docEucLengths.get(doc.docID);
+                score1 /= (normType == NormalizationType.EUCLIDEAN ? eucLength : docLength);
+                return score1 * (1 - RANK_RATIO) + score2 * RANK_RATIO;
             }
             default:
                 throw new IllegalArgumentException();
