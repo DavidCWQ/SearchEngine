@@ -47,7 +47,6 @@ public class Indexer {
     }
 
 
-
     /**
      *  Tokenizes and indexes the file @code{f}. If <code>f</code> is a directory,
      *  all its files and subdirectories are recursively processed.
@@ -102,6 +101,58 @@ public class Indexer {
 
     public void getPageRank(String rankFile, String titleFile) {
 
+        HashMap<Integer, Double> docRank = new HashMap<Integer, Double>();
+        HashMap<String, Integer> docName = new HashMap<String, Integer>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(rankFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] tokens = line.split(":");
+                if (tokens.length == 2) {
+                    int fakeID = Integer.parseInt(tokens[0].trim());
+                    double score = Double.parseDouble(tokens[1].trim());
+                    docRank.put( fakeID, score );
+                } else {
+                    System.err.println("Invalid line format: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("An error occurred: " + e.getMessage());
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(titleFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] tokens = line.split(";");
+                if (tokens.length == 2) {
+                    int fakeID = Integer.parseInt(tokens[0].trim());
+                    String title = tokens[1].trim();
+                    docName.put( title, fakeID );
+                } else {
+                    System.err.println("Invalid line format: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("An error occurred: " + e.getMessage());
+        }
+
+        if (docRank.size() == docName.size()) {
+            try {
+                // Mapping true ID -> docName -> fake ID -> pagerank score
+                for (Integer id : index.docNames.keySet()) {
+                    String name = index.docNames.get(id);
+                    Integer f_id = docName.get(name);
+                    Double score = docRank.get(f_id);
+                    index.docScores.put( id, score );
+                }
+            }
+            catch (NullPointerException e) {
+                System.err.println("An error occurred: " + e.getMessage());
+            }
+        }
+        else {
+            System.err.println("ERROR: rank file and title file doesn't match!");
+        }
+
     }
 }
-
