@@ -93,13 +93,13 @@ public class PageRank {
 	    while ((line = in.readLine()) != null && fileIndex<MAX_NUMBER_OF_DOCS ) {
 		int index = line.indexOf( ";" );
 		String title = line.substring( 0, index );
-		Integer fromdoc = docNumber.get( title );
+		Integer fromDoc = docNumber.get( title );
 		//  Have we seen this document before?
-		if ( fromdoc == null ) {	
+		if ( fromDoc == null ) {
 		    // This is a previously unseen doc, so add it to the table.
-		    fromdoc = fileIndex++;
-		    docNumber.put( title, fromdoc );
-		    docName[fromdoc] = title;
+		    fromDoc = fileIndex++;
+		    docNumber.put( title, fromDoc );
+		    docName[fromDoc] = title;
 		}
 		// Check all outlinks.
 		StringTokenizer tok = new StringTokenizer( line.substring(index+1), "," );
@@ -113,13 +113,11 @@ public class PageRank {
 			docName[otherDoc] = otherTitle;
 		    }
 		    // Set the probability to 0 for now, to indicate that there is
-		    // a link from fromdoc to otherDoc.
-		    if ( link.get(fromdoc) == null ) {
-			link.put(fromdoc, new HashMap<Integer,Boolean>());
-		    }
-		    if ( link.get(fromdoc).get(otherDoc) == null ) {
-			link.get(fromdoc).put( otherDoc, true );
-			out[fromdoc]++;
+		    // a link from fromDoc to otherDoc.
+            link.computeIfAbsent(fromDoc, k -> new HashMap<Integer, Boolean>());
+		    if ( link.get(fromDoc).get(otherDoc) == null ) {
+			link.get(fromDoc).put( otherDoc, true );
+			out[fromDoc]++;
 		    }
 		}
 	    }
