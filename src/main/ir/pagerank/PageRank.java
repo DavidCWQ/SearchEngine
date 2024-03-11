@@ -98,7 +98,7 @@ public class PageRank {
 		    String otherTitle = tok.nextToken();
 		    Integer otherDoc = docNumber.get( otherTitle );
 		    if ( otherDoc == null ) {
-			// This is a previousy unseen doc, so add it to the table.
+			// This is a previously unseen doc, so add it to the table.
 			otherDoc = fileIndex++;
 			docNumber.put( otherTitle, otherDoc );
 			docName[otherDoc] = otherTitle;
