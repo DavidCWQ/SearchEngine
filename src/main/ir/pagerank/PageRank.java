@@ -60,10 +60,19 @@ public class PageRank {
     /* --------------------------------------------- */
 
 
-    public PageRank( String filename ) {
+    public PageRank( String filename, Integer method_id ) {
 		int noOfDocs = readDocs( PAGERANK_DIR + filename );
         int maxIterations = 1000;
-        iterate( noOfDocs, maxIterations );
+		switch (method_id) {
+			case 1:
+			case 2:
+			case 4:
+			case 5:
+				break;
+			default:
+				iterate( noOfDocs, maxIterations );
+				break;
+		}
     }
 
 
@@ -257,11 +266,30 @@ public class PageRank {
     /* --------------------------------------------- */
 
     public static void main( String[] args ) {
-		if ( args.length != 1 ) {
+		if ( args.length < 1 ) {
 			System.err.println( "Please give the name of the link file" );
+			return;
 		}
-		else {
-			new PageRank( args[0] );
+		if ( args.length > 3 ) {
+			System.err.println( "Too many arguments provided (MAX: 3)." );
 		}
+		int methodID = 0;
+		if ( args.length > 1 ) {
+			if ( Objects.equals(args[1], "-m") ) {
+				try {
+					methodID = Integer.parseInt(args[2]);
+					if ( methodID < 0 || methodID > 5 ) {
+						throw new NumberFormatException();
+					}
+				} catch ( NumberFormatException e ) {
+					System.err.println("Invalid input: " + args[2] + " is not a valid method id.");
+				}
+			}
+			else {
+				System.err.println("Unknown option: " + args[1]);
+				return;
+			}
+		}
+		new PageRank( args[0], methodID );
     }
 }
