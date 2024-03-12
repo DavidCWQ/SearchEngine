@@ -38,6 +38,9 @@ public class PageRank {
     /** The number of outlinks from each node. */
 	private final int[] out = new int[MAX_NUMBER_OF_DOCS];
 
+	/** The filename of linkFile.*/
+	private String fileName;
+
 	/** Max number of iterations or rounds of random walk. */
 	private int maxIterations;
 
@@ -158,9 +161,9 @@ public class PageRank {
 	 *  printed to the standard error stream.
 	 */
 	public void saveToFile() {
-
+		if (fileName.isEmpty()) { return; }
 		try {
-			FileWriter writer = new FileWriter(RESULT_DIR + "pagerank_result.txt");
+			FileWriter writer = new FileWriter(RESULT_DIR + fileName + "_rank_result.txt");
 			if (scores == null) { writer.close(); return; }
 			for (int i = 0; i < scores.length; i++) {
 				writer.write(docName[i] + ": " + scores[i] + System.lineSeparator());
@@ -260,6 +263,7 @@ public class PageRank {
 		catch ( IOException e ) {
 			System.err.println( "Error reading linkFile: " + e.getMessage() );
 		}
+		fileName = linkFile.getName();
 		System.err.println( "Read " + fileIndex + " number of documents." );
 	}
 
