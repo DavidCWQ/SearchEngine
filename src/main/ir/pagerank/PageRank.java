@@ -18,7 +18,7 @@ public class PageRank {
     HashMap<String,Integer> docNumber = new HashMap<String,Integer>();
 
     /**
-     *   Mapping from document numbers to document names
+     *   Mapping from document numbers to document names.
      */
     String[] docName = new String[MAX_NUMBER_OF_DOCS];
 
@@ -35,10 +35,14 @@ public class PageRank {
      */
     HashMap<Integer,HashMap<Integer,Boolean>> link = new HashMap<Integer,HashMap<Integer,Boolean>>();
 
-    /**
-     *   The number of outlinks from each node.
-     */
+    /** The number of outlinks from each node. */
     int[] out = new int[MAX_NUMBER_OF_DOCS];
+
+	/** Max number of iterations or rounds of random walk. */
+	int maxIterations;
+
+	/** Create and initialize a thread-safe random number generator. */
+	final private Random random = new Random();
 
     /**
      *   The probability that the surfer will be bored, stop
@@ -60,11 +64,13 @@ public class PageRank {
     /* --------------------------------------------- */
 
 
-    public PageRank( String filename, Integer method_id ) {
+    public PageRank( String filename, Integer method_id, Integer maxEpochs ) {
 		int noOfDocs = readDocs( PAGERANK_DIR + filename );
-        int maxIterations = 1000;
+		maxIterations = noOfDocs * maxEpochs;
 		switch (method_id) {
 			case 1:
+				MonteCarloSim1( noOfDocs );
+				break;
 			case 2:
 			case 4:
 			case 5:
@@ -147,7 +153,7 @@ public class PageRank {
      *  aP, aP^2, aP^3... until aP^i = aP^(i+1).
 	 *  Save the result as txt file named "pagerank_result.txt"
      */
-    void iterate( int numberOfDocs, int maxIterations ) {
+    private void iterate( int numberOfDocs, int maxIterations ) {
 		// YOUR CODE HERE
 
 		// Initialize vector a with length=1 and equal probabilities for all docs
@@ -260,6 +266,35 @@ public class PageRank {
 		return aG;
 	}
 
+	// Perform Monte Carlo simulation of random walks on the graph
+	private double[] MonteCarloSim1( int numberOfDocs ) {
+		// An array to count the end of walks
+		Integer[] walkEndCnt = new Integer[numberOfDocs];
+		Arrays.fill(walkEndCnt, 0);
+		// Start the N runs of the random walk
+		for (int i = 0; i < this.maxIterations; i++) {
+            // Start the random walk from a randomly chosen page
+            int chosenPage = random.nextInt(numberOfDocs);
+			while (true) {
+                // Move to a random linked page or new page
+                if (link.containsKey(chosenPage)) {
+                    Integer[] outlinks = link.get(chosenPage).keySet().toArray(new Integer[0]);
+                    chosenPage = outlinks[random.nextInt(outlinks.length)];
+                } else {
+                    chosenPage = random.nextInt(numberOfDocs);
+                }
+				// Terminate the walk with a certain probability 'BORED'
+				if (random.nextDouble() < BORED) { // Exit Condition
+					// Increment the count of walks ending at chosen page
+					walkEndCnt[chosenPage] += 1;
+					break;
+				}
+            }
+        }
+		return Arrays.stream(walkEndCnt)
+					 .mapToDouble(i -> (double) i / numberOfDocs)
+					 .toArray();
+	}
 
     /* --------------------------------------------- */
 
@@ -268,26 +303,47 @@ public class PageRank {
 			System.err.println( "Please give the name of the link file" );
 			return;
 		}
-		if ( args.length > 3 ) {
-			System.err.println( "Too many arguments provided (MAX: 3)." );
+		if ( args.length > 5 ) {
+			System.err.println( "Too many arguments provided (MAX: 5)." );
 		}
-		int methodID = 0;
-		if ( args.length > 1 ) {
-			if ( Objects.equals(args[1], "-m") ) {
-				try {
-					methodID = Integer.parseInt(args[2]);
-					if ( methodID < 0 || methodID > 5 ) {
-						throw new NumberFormatException();
+
+		int i = 1, methodID = 0, maxEpochs = 1;
+		while ( i < args.length ) {
+			switch (args[i++]) {
+				case "-m":
+					if (i < args.length) {
+						try {
+							methodID = Integer.parseInt(args[i++]);
+							if ( methodID < 0 || methodID > 5 ) {
+								throw new NumberFormatException();
+							}
+						} catch ( NumberFormatException e ) {
+							System.err.println("Invalid input: '" + args[--i]
+									+ "' is not a valid method id.");
+							return;
+						}
 					}
-				} catch ( NumberFormatException e ) {
-					System.err.println("Invalid input: " + args[2] + " is not a valid method id.");
-				}
-			}
-			else {
-				System.err.println("Unknown option: " + args[1]);
-				return;
+					break;
+				case "-r":
+					if (i < args.length) {
+						try {
+							maxEpochs = Integer.parseInt(args[i++]);
+							if ( maxEpochs < 1 ) {
+								throw new NumberFormatException();
+							}
+						} catch ( NumberFormatException e ) {
+							System.err.println("Invalid input: '" + args[--i]
+									+ "' is not a valid epoch num.");
+							return;
+						}
+					}
+					break;
+				default:
+					System.err.println("Unknown option: " + args[i]);
+					return;
 			}
 		}
-		new PageRank( args[0], methodID );
+
+		new PageRank( args[0], methodID, maxEpochs );
     }
 }
