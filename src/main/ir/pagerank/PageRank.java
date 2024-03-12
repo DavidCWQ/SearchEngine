@@ -7,20 +7,20 @@ import java.lang.Math;
 public class PageRank {
 
     /**
-     *   Maximal number of documents. We're assuming here that we
+     *   Maximal number of documents. We're assuming that we
      *   don't have more docs than we can keep in main memory.
      */
-    final static int MAX_NUMBER_OF_DOCS = 2000000;
+    private static final int MAX_NUMBER_OF_DOCS = 2000000;
 
     /**
      *   Mapping from document names to document numbers.
      */
-    HashMap<String,Integer> docNumber = new HashMap<String,Integer>();
+    private final HashMap<String,Integer> docNumber = new HashMap<>();
 
     /**
      *   Mapping from document numbers to document names.
      */
-    String[] docName = new String[MAX_NUMBER_OF_DOCS];
+	private final String[] docName = new String[MAX_NUMBER_OF_DOCS];
 
     /**  
      *   A memory-efficient representation of the transition matrix.
@@ -33,116 +33,235 @@ public class PageRank {
      *   If there are no outlinks from i, then the value corresponding 
      *   key i is null.
      */
-    HashMap<Integer,HashMap<Integer,Boolean>> link = new HashMap<Integer,HashMap<Integer,Boolean>>();
+	private final HashMap<Integer,HashMap<Integer,Boolean>> link = new HashMap<>();
 
     /** The number of outlinks from each node. */
-    int[] out = new int[MAX_NUMBER_OF_DOCS];
+	private final int[] out = new int[MAX_NUMBER_OF_DOCS];
 
 	/** Max number of iterations or rounds of random walk. */
-	int maxIterations;
+	private int maxIterations;
 
 	/** Create and initialize a thread-safe random number generator. */
-	final private Random random = new Random();
+	private final Random random = new Random();
+
+	/** The pagerank scores result after calculation. */
+	private double[] scores = null;
 
     /**
      *   The probability that the surfer will be bored, stop
      *   following links, and take a random jump somewhere.
      */
-    final static double BORED = 0.15;
+    private double BORED = 0.15;
 
     /**
      *   Convergence criterion: Transition probabilities do not 
      *   change more that EPSILON from one iteration to another.
      */
-    final static double EPSILON = 0.0001;
+    private double EPSILON = 0.0001;
 
 	/** The directory where the pagerank related files are stored. */
-	public static final String PAGERANK_DIR = "src/main/ir/pagerank/";
+	private static final String PAGERANK_DIR = "src/main/ir/pagerank/";
 
 	/** The directory where the pagerank result are stored. */
-	public static final String RESULT_DIR = "src/main/resources/";
+	private static final String RESULT_DIR = "src/main/resources/";
     /* --------------------------------------------- */
 
+    public PageRank(File linkFile, Integer maxEpochs) {
+		readDocs( linkFile );
+		setMaxEpochs( maxEpochs );
+    }
 
-    public PageRank( String filename, Integer method_id, Integer maxEpochs ) {
-		int noOfDocs = readDocs( PAGERANK_DIR + filename );
-		maxIterations = noOfDocs * maxEpochs;
-		switch (method_id) {
+	/**
+	 *  Start the pagerank calculation using given method.
+	 *  @param method_id given method id
+	 *                   0: Power iteration
+	 *                   1: MC end-point with random start
+	 *                   2: MC end-point with cyclic start
+	 *                   3: MC complete path
+	 *                   4: MC complete path stopping at dangling nodes
+	 *                   5: MC complete path with random start
+	 *  @param save_to_file save the result to txt if true
+	 *  @return the top 30 documents with the highest rank
+	 */
+	public Integer[] runPageRank ( int method_id, boolean save_to_file ) {
+		switch ( method_id ) {
 			case 1:
-				MonteCarloSim1( noOfDocs );
+				scores = MonteCarloSim1();
 				break;
 			case 2:
 			case 4:
 			case 5:
 				break;
 			default:
-				iterate( noOfDocs, maxIterations );
+				scores = iterate();
 				break;
 		}
-    }
+		Integer[] indexes = this.sortScores( false );
+		if ( save_to_file ) saveToFile();
+		return Arrays.copyOf( indexes, Math.min(indexes.length, 30) );
+	}
+
+	/**
+	 *  Sorts the scores in descending order by default and returns
+	 *  the sorted indexes.
+	 *  @param ascending in ascending order if set to true
+	 *  @return an array of int representing the sorted indexes of
+	 *  the scores array.
+	 */
+	public Integer[] sortScores( boolean ascending ) {
+		if (scores == null) { return new Integer[0]; }
+
+		// Create an array of pairs (value, index)
+		int n = scores.length;
+		Integer[] indexes = new Integer[n];
+		for (int i = 0; i < n; i++) {
+			indexes[i] = i;
+		}
+
+		// Sort the array of indexes based on the values in arr
+		Arrays.sort(indexes, ascending ?
+				Comparator.comparingDouble(index -> scores[index]) :
+				Comparator.comparingDouble(index -> scores[(int) index]).reversed());
+
+		return indexes;
+	}
+
+	/**
+	 *  Prints the PageRank scores for the specified number in sequence
+	 *  of indexes.
+	 *  @param seq An array containing the score printing sequence.
+	 */
+	public void printScores(Integer[] seq) {
+		if ( scores == null || seq == null ) { return; }
+		int num = Math.min(seq.length, scores.length);
+		int border = scores.length - 1;
+		System.out.println("Print the PageRank scores: ");
+		System.out.println("======================================");
+		for (int i = 0; i < num; i++) {
+			// Use the sorted indexes to access the sorted values in arr
+			Integer idx = seq[i];
+			if ( idx < 0 || idx > border ) {
+				System.err.println("Error in PrintScores: " +
+						"array value of the given seq is outside the valid document range.");
+				return;
+			}
+			System.out.println(docName[idx] + ": " + scores[idx]);
+		}
+		System.out.println("======================================");
+	}
+
+	/**
+	 *  Saves the PageRank results to a text file.
+	 *  The results are written in the format "&lt;document_name&gt;:
+	 *  &lt;PageRank_score&gt;".<p>
+	 *  If an error occurs during writing, an error message will be
+	 *  printed to the standard error stream.
+	 */
+	public void saveToFile() {
+
+		try {
+			FileWriter writer = new FileWriter(RESULT_DIR + "pagerank_result.txt");
+			if (scores == null) { writer.close(); return; }
+			for (int i = 0; i < scores.length; i++) {
+				writer.write(docName[i] + ": " + scores[i] + System.lineSeparator());
+			}
+			writer.close();
+			System.out.println("Result saved in pagerank_result.txt");
+		} catch (IOException e) {
+			System.err.println("Error writing to file: " + e.getMessage());
+		}
+	}
 
 
     /* --------------------------------------------- */
 
+	/** Reset the max epochs of iterations. */
+	public void setMaxEpochs( int newEpochs ) {
+		this.maxIterations = newEpochs * docNumber.size();
+	}
 
-    /**
-     *   Reads the documents and fills the data structures. 
-     *
-     *   @return the number of documents read.
-     */
-    int readDocs( String filename ) {
-	int fileIndex = 0;
-	try {
-	    System.err.print( "Reading file... " );
-	    BufferedReader in = new BufferedReader( new FileReader( filename ));
-	    String line;
-	    while ((line = in.readLine()) != null && fileIndex<MAX_NUMBER_OF_DOCS ) {
-		int index = line.indexOf( ";" );
-		String title = line.substring( 0, index );
-		Integer fromDoc = docNumber.get( title );
-		//  Have we seen this document before?
-		if ( fromDoc == null ) {
-		    // This is a previously unseen doc, so add it to the table.
-		    fromDoc = fileIndex++;
-		    docNumber.put( title, fromDoc );
-		    docName[fromDoc] = title;
+	/** Reset the probability of getting bored. */
+	public void setBoardProb( double boardProb ) {
+		this.BORED = boardProb;
+	}
+
+	/** Reset the convergence criterion parameter. */
+	public void setEpsilon( double epsilon ) {
+		this.EPSILON = epsilon;
+	}
+
+	/** Return a copy of the scores array. */
+	public double[] getScores() {
+		if (scores == null) { return new double[0]; }
+		return Arrays.copyOf(this.scores, this.scores.length);
+	}
+
+	private void clearDocs() {
+		this.link.clear();
+		this.docNumber.clear();
+		Arrays.fill(this.out, 0);
+		Arrays.fill(this.docName, "");
+		this.scores = null;
+	}
+
+	/**
+	 *   Reads the documents and fills the data structures.
+	 *   Previous doc stored will be cleared.
+	 *   @param linkFile the doc containing the link structure of pages
+	 */
+	void readDocs( File linkFile ) {
+		clearDocs();
+		int fileIndex = 0;
+		try {
+			String line;
+			BufferedReader in = new BufferedReader( new FileReader( linkFile ));
+			while ((line = in.readLine()) != null && fileIndex < MAX_NUMBER_OF_DOCS ) {
+				int idx = line.indexOf( ";" );
+				String title = line.substring( 0, idx );
+				Integer fromDoc = docNumber.get( title );
+				// Have we seen this document before?
+				if ( fromDoc == null ) { // a previously unseen doc
+					// add it to the table
+					fromDoc = fileIndex++;
+					docName[fromDoc] = title;
+					docNumber.put( title, fromDoc );
+				}
+				// Check all outlinks.
+				StringTokenizer tok = new StringTokenizer(
+						line.substring(idx + 1), "," );
+				while ( tok.hasMoreTokens() && fileIndex < MAX_NUMBER_OF_DOCS ) {
+					String otherTitle = tok.nextToken();
+					Integer otherDoc = docNumber.get( otherTitle );
+					if ( otherDoc == null ) { // a previously unseen doc
+						// add it to the table
+						otherDoc = fileIndex++;
+						docName[otherDoc] = otherTitle;
+						docNumber.put( otherTitle, otherDoc );
+					}
+					// Set the probability to 0 for now, to indicate that there is
+					// a link from fromDoc to otherDoc.
+					link.computeIfAbsent( fromDoc, k -> new HashMap<>() );
+					if ( link.get(fromDoc).get(otherDoc) == null ) {
+						link.get(fromDoc).put( otherDoc, true );
+						out[fromDoc]++;
+					}
+				}
+			}
+			if ( fileIndex >= MAX_NUMBER_OF_DOCS ) {
+				System.err.print( "Stopped reading since documents table is full. " );
+			}
+			else {
+				System.err.print( "Reading completed." );
+			}
 		}
-		// Check all outlinks.
-		StringTokenizer tok = new StringTokenizer( line.substring(index+1), "," );
-		while ( tok.hasMoreTokens() && fileIndex<MAX_NUMBER_OF_DOCS ) {
-		    String otherTitle = tok.nextToken();
-		    Integer otherDoc = docNumber.get( otherTitle );
-		    if ( otherDoc == null ) {
-			// This is a previously unseen doc, so add it to the table.
-			otherDoc = fileIndex++;
-			docNumber.put( otherTitle, otherDoc );
-			docName[otherDoc] = otherTitle;
-		    }
-		    // Set the probability to 0 for now, to indicate that there is
-		    // a link from fromDoc to otherDoc.
-            link.computeIfAbsent(fromDoc, k -> new HashMap<Integer, Boolean>());
-		    if ( link.get(fromDoc).get(otherDoc) == null ) {
-			link.get(fromDoc).put( otherDoc, true );
-			out[fromDoc]++;
-		    }
+		catch ( FileNotFoundException e ) {
+			System.err.println( "Error finding linkFile: " + e.getMessage() );
 		}
-	    }
-	    if ( fileIndex >= MAX_NUMBER_OF_DOCS ) {
-		System.err.print( "stopped reading since documents table is full. " );
-	    }
-	    else {
-		System.err.print( "done. " );
-	    }
+		catch ( IOException e ) {
+			System.err.println( "Error reading linkFile: " + e.getMessage() );
+		}
+		System.err.println( "Read " + fileIndex + " number of documents." );
 	}
-	catch ( FileNotFoundException e ) {
-	    System.err.println( "File " + filename + " not found!" );
-	}
-	catch ( IOException e ) {
-	    System.err.println( "Error reading file " + filename );
-	}
-	System.err.println( "Read " + fileIndex + " number of documents" );
-	return fileIndex;
-    }
 
 
     /* --------------------------------------------- */
@@ -153,9 +272,9 @@ public class PageRank {
      *  aP, aP^2, aP^3... until aP^i = aP^(i+1).
 	 *  Save the result as txt file named "pagerank_result.txt"
      */
-    private void iterate( int numberOfDocs, int maxIterations ) {
+    private double[] iterate() { // Power iteration
 		// YOUR CODE HERE
-
+		int numberOfDocs = docNumber.size();
 		// Initialize vector a with length=1 and equal probabilities for all docs
 		double[] a = new double[numberOfDocs];
 		Arrays.fill(a, 1.0 / numberOfDocs);
@@ -179,43 +298,11 @@ public class PageRank {
 			a = Arrays.stream(aP).map(val -> val / norm).toArray();
 		}
 		System.out.println("======================================");
-
-		// Create an array of pairs (value, index)
-		int n = a.length; double[] val = a;
-		Integer[] indexes = new Integer[n];
-		for (int i = 0; i < n; i++) {
-			indexes[i] = i;
-		}
-
-		// Sort the array of indexes based on the values in arr
-		Arrays.sort(indexes, Comparator.comparingDouble(index -> val[(int) index]).reversed());
-
-		// Print the 30 highest PageRank scores
-		System.out.println("Print the 30 highest PageRank scores: ");
-		System.out.println("======================================");
-		for (int i = 0; i < 30; i++) {
-			// Use the sorted indexes to access the sorted values in arr
-			Integer idx = indexes[i];
-			System.out.println(docName[idx] + ": " + a[idx]);
-		}
-		System.out.println("===================================");
-
-		// Save the PageRank result in txt file
-		try {
-			FileWriter writer = new FileWriter(RESULT_DIR + "pagerank_result.txt");
-			for (int i = 0; i < a.length; i++) {
-				Integer idx = indexes[i];
-				writer.write(docName[idx] + ": " + a[idx] + System.lineSeparator());
-			}
-			writer.close();
-			System.out.println("Result saved in pagerank_result.txt");
-		} catch (IOException e) {
-			System.err.println("Error writing to file: " + e.getMessage());
-		}
+		return a;
     }
 
 	// Calculate the distance between point a and b
-	double distance(double[] a, double[] b) {
+	private double distance(double[] a, double[] b) {
 		double sum = 0.0;
 		for (int j = 0; j < a.length; j++) {
 			double sumComponent = a[j] - b[j];
@@ -225,7 +312,7 @@ public class PageRank {
     }
 
 	// Calculate the modulus length of vector a
-	double norm(double[] a, double dim) {
+	private double norm(double[] a, double dim) {
 		double sum = 0.0;
         for (double sumComponent : a) {
             sum += Math.pow(sumComponent, dim);
@@ -237,7 +324,7 @@ public class PageRank {
 	 *  Multiply the vector a with transition matrix G
 	 *  @return multiplication result aG where G = cP+(1-c)J
 	 */
-	double[] matrixVectorMul(double[] a) {
+	private double[] matrixVectorMul(double[] a) {
 		// Initialize result vector aG
 		double[] aG = new double[a.length];
 
@@ -267,10 +354,9 @@ public class PageRank {
 	}
 
 	// Perform Monte Carlo simulation of random walks on the graph
-	private double[] MonteCarloSim1( int numberOfDocs ) {
-		// An array to count the end of walks
-		Integer[] walkEndCnt = new Integer[numberOfDocs];
-		Arrays.fill(walkEndCnt, 0);
+	private double[] MonteCarloSim1() {
+		int numberOfDocs = docNumber.size();
+		int[] walkEndCnt = new int[numberOfDocs];
 		// Start the N runs of the random walk
 		for (int i = 0; i < this.maxIterations; i++) {
             // Start the random walk from a randomly chosen page
@@ -344,6 +430,15 @@ public class PageRank {
 			}
 		}
 
-		new PageRank( args[0], methodID, maxEpochs );
+		try {
+			System.err.print( "Reading file... " );
+			File file = new File( PAGERANK_DIR + args[0] );
+			PageRank PRCalculator = new PageRank( file, maxEpochs );
+			Integer[] docIDs = PRCalculator.runPageRank(methodID, true);
+			PRCalculator.printScores(docIDs);
+		}
+		catch ( NullPointerException e ) {
+			System.err.println( "Error of Null Pointer: " + e.getMessage() );
+		}
     }
 }
