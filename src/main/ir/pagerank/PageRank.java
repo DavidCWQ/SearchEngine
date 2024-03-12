@@ -135,11 +135,11 @@ public class PageRank {
 	 *  @param seq An array containing the score printing sequence.
 	 */
 	public void printScores(Integer[] seq) {
+		System.out.println("Print the PageRank scores: ");
+		System.out.println("======================================");
 		if ( scores == null || seq == null ) { return; }
 		int num = Math.min(seq.length, scores.length);
 		int border = scores.length - 1;
-		System.out.println("Print the PageRank scores: ");
-		System.out.println("======================================");
 		for (int i = 0; i < num; i++) {
 			// Use the sorted indexes to access the sorted values in arr
 			Integer idx = seq[i];
