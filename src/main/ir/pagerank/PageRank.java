@@ -372,25 +372,10 @@ public class PageRank {
 		// Start the N runs of the random walk
 		for (int i = 0; i < this.maxIterations; i++) {
             // Start the random walk from a randomly chosen page
-            int chosenPage = random.nextInt(numberOfDocs);
-			while (true) {
-                // Move to a random linked page or new page
-                if (link.containsKey(chosenPage)) {
-                    Integer[] outlinks = link.get(chosenPage).keySet().toArray(new Integer[0]);
-                    chosenPage = outlinks[random.nextInt(outlinks.length)];
-                } else {
-                    chosenPage = random.nextInt(numberOfDocs);
-                }
-				// Terminate the walk with a certain probability 'BORED'
-				if (random.nextDouble() < BORED) { // Exit Condition
-					// Increment the count of walks ending at chosen page
-					walkEndCnt[chosenPage] += 1;
-					break;
-				}
-            }
+			MonteCarloWalk( walkEndCnt, random.nextInt(numberOfDocs), false );
         }
 		return Arrays.stream(walkEndCnt)
-					 .mapToDouble(i -> (double) i / numberOfDocs)
+					 .mapToDouble(i -> (double) i / maxIterations)
 					 .toArray();
 	}
 
@@ -399,7 +384,52 @@ public class PageRank {
 	 *  MC end-point with cyclic start.
 	 */
 	private double[] MonteCarloSim2() {
-		return new double[0];
+		int numberOfDocs = docNumber.size();
+		int[] walkEndCnt = new int[numberOfDocs];
+		// Start the N = mn runs of the random walk
+		for (int i = 0; i < maxIterations / numberOfDocs; i++) {
+			// Start the random walk from a cyclically chosen page
+			for (int p = 0; p < numberOfDocs; p++) {
+				MonteCarloWalk( walkEndCnt, p, false );
+			}
+		}
+		return Arrays.stream(walkEndCnt)
+				.mapToDouble(i -> (double) i / maxIterations)
+				.toArray();
+	}
+
+	/**
+	 *  Performs a Monte Carlo walk simulation.
+	 *
+	 *  @param count        An array to count the visits or end of walks for each page.
+	 *  @param chosenPage   The starting page for the walk.
+	 *  @param completePath Flag indicating whether to stop at dangling nodes.
+	 *                      True: stopped at dangling nodes; False: otherwise.
+	 */
+	private void MonteCarloWalk( int[] count, int chosenPage, boolean completePath ) {
+		boolean reachDangling = false;
+		while (true) {
+			// Move to a random linked page or new page
+			if (link.containsKey(chosenPage)) {
+				Integer[] outlinks = link.get(chosenPage).keySet().toArray(new Integer[0]);
+				chosenPage = outlinks[random.nextInt(outlinks.length)];
+			}
+			else if (completePath) {
+				reachDangling = true;
+			}
+			else {
+				chosenPage = random.nextInt(docNumber.size());
+			}
+			// Terminate the walk with a certain probability 'BORED'
+			if (random.nextDouble() < BORED || reachDangling) { // Exit Condition
+				// Increment the count of walks ending at chosen page
+				count[chosenPage] += 1;
+				break;
+			}
+			if (completePath) {
+				count[chosenPage] += 1;
+			}
+		}
 	}
 
 	/**
@@ -407,7 +437,18 @@ public class PageRank {
 	 *  MC complete path stopping at dangling nodes.
 	 */
 	private double[] MonteCarloSim4() {
-		return new double[0];
+		int numberOfDocs = docNumber.size();
+		int[] visitCount = new int[numberOfDocs];
+		// Start the N = mn runs of the random walk
+		for (int i = 0; i < maxIterations / numberOfDocs; i++) {
+			// Start the random walk from a cyclically chosen page
+			for (int p = 0; p < numberOfDocs; p++) {
+				MonteCarloWalk( visitCount, p, true );
+			}
+		}
+		return Arrays.stream(visitCount)
+				.mapToDouble(i -> (double) i / Arrays.stream(visitCount).sum())
+				.toArray();
 	}
 
 	/**
@@ -415,7 +456,16 @@ public class PageRank {
 	 *  MC complete path with random start.
 	 */
 	private double[] MonteCarloSim5() {
-		return new double[0];
+		int numberOfDocs = docNumber.size();
+		int[] visitCount = new int[numberOfDocs];
+		// Start the N runs of the random walk
+		for (int i = 0; i < this.maxIterations; i++) {
+			// Start the random walk from a randomly chosen page
+			MonteCarloWalk( visitCount, random.nextInt(numberOfDocs), true );
+		}
+		return Arrays.stream(visitCount)
+				.mapToDouble(i -> (double) i / Arrays.stream(visitCount).sum())
+				.toArray();
 	}
 
     /* --------------------------------------------- */
