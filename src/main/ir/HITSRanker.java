@@ -115,7 +115,51 @@ public class HITSRanker {
      *  @param      titlesFilename  File containing the mapping between nodeIDs and pages titles
      */
     void readDocs( String linksFilename, String titlesFilename ) {
-        
+        // YOUR CODE HERE
+        // Read linksFile
+        try {
+            String line;
+            System.err.print( "Reading links file... " );
+            BufferedReader in = new BufferedReader( new FileReader( linksFilename ));
+            while (( line = in.readLine() ) != null ) {
+                int delim = line.indexOf(";");
+                Integer fromDoc = Integer.parseInt( line.substring( 0, delim ));
+                StringTokenizer tok = new StringTokenizer(
+                        line.substring(delim + 1), ","
+                );
+                List<Integer> outlinks = new ArrayList<>();
+                while ( tok.hasMoreTokens() ) {
+                    String outLink = tok.nextToken();
+                    outlinks.add(Integer.parseInt( outLink ));
+                }
+                this.outlinks.put(fromDoc, outlinks);
+            }
+            System.err.print( "Reading completed." );
+        } catch ( FileNotFoundException e ) {
+            System.err.println( "Error finding linkFile: " + e.getMessage() );
+        } catch ( IOException e ) {
+            System.err.println( "Error reading linkFile: " + e.getMessage() );
+        }
+
+        // Read titlesFile
+        try {
+            String line;
+            System.err.print( "Reading titles file... " );
+            BufferedReader in = new BufferedReader( new FileReader( titlesFilename ));
+            while (( line = in.readLine() ) != null ) {
+                String[] tokens = line.split(":");
+                if ( tokens.length == 2 ) {
+                    titleToId.put( tokens[1], Integer.parseInt(tokens[0]) );
+                } else {
+                    System.err.println( "Invalid line format: " + line );
+                }
+            }
+            System.err.print( "Reading completed." );
+        } catch (FileNotFoundException e) {
+            System.err.println( "Error finding titlesFile: " + e.getMessage() );
+        } catch (IOException e) {
+            System.err.println( "Error reading titlesFile: " + e.getMessage() );
+        }
     }
 
     /**
