@@ -21,7 +21,7 @@ Unzip them in the `src/main/datasets` directory.
 ## Getting Started
 
 ### Prerequisites
-- [Java Development Kit (JDK)](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html) installed on your system
+- [Java Development Kit (JDK)](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html) installed on your system (Java 8 and above)
 - [Git](https://git-scm.com/) installed on your system (if cloning the repository)
 
 ### Installation
