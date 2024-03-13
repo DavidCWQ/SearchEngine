@@ -69,6 +69,7 @@ public class PageRank {
 	private static final String RESULT_DIR = "src/main/resources/";
     /* --------------------------------------------- */
 
+
     public PageRank(File linkFile, Integer maxEpochs) {
 		readDocs( linkFile );
 		setMaxEpochs( maxEpochs );
@@ -84,9 +85,8 @@ public class PageRank {
 	 *                   4: MC complete path stopping at dangling nodes
 	 *                   5: MC complete path with random start
 	 *  @param save_to_file save the result to txt if true
-	 *  @return the top 30 documents with the highest rank
 	 */
-	public Integer[] runPageRank ( int method_id, boolean save_to_file ) {
+	public void runPageRank ( int method_id, boolean save_to_file ) {
 		switch ( method_id ) {
 			case 1:
 				scores = MonteCarloSim1();
@@ -104,9 +104,7 @@ public class PageRank {
 				scores = iterate();
 				break;
 		}
-		Integer[] indexes = this.sortScores( false );
 		if ( save_to_file ) saveToFile();
-		return Arrays.copyOf( indexes, Math.min(indexes.length, 30) );
 	}
 
 	/**
@@ -202,6 +200,15 @@ public class PageRank {
 	public double[] getScores() {
 		if (scores == null) { return new double[0]; }
 		return Arrays.copyOf(this.scores, this.scores.length);
+	}
+
+	/** Return a copy of the top num scores array. */
+	public double[] getTopScores( int num ) {
+		if (scores == null) { return new double[0]; }
+        return Arrays.stream(this.sortScores(false))
+				     .limit(Math.min(docNumber.size(), num))
+				     .mapToDouble(i -> scores[i])
+				     .toArray();
 	}
 
 	private void clearDocs() {
@@ -520,8 +527,9 @@ public class PageRank {
 			System.err.print( "Reading file... " );
 			File file = new File( PAGERANK_DIR + args[0] );
 			PageRank PRCalculator = new PageRank( file, maxEpochs );
-			Integer[] docIDs = PRCalculator.runPageRank(methodID, true);
-			PRCalculator.printScores(docIDs);
+			PRCalculator.runPageRank(methodID, true);
+			Integer[] docIDs = PRCalculator.sortScores( false );
+			PRCalculator.printScores(Arrays.copyOf(docIDs, Math.min(docIDs.length, 30)));
 		}
 		catch ( NullPointerException e ) {
 			System.err.println( "Error of Null Pointer: " + e.getMessage() );
