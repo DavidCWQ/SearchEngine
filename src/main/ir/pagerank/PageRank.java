@@ -92,8 +92,13 @@ public class PageRank {
 				scores = MonteCarloSim1();
 				break;
 			case 2:
+				scores = MonteCarloSim2();
+				break;
 			case 4:
+				scores = MonteCarloSim4();
+				break;
 			case 5:
+				scores = MonteCarloSim5();
 				break;
 			default:
 				scores = iterate();
@@ -135,9 +140,9 @@ public class PageRank {
 	 *  @param seq An array containing the score printing sequence.
 	 */
 	public void printScores(Integer[] seq) {
-		System.out.println("Print the PageRank scores: ");
+		System.out.println("Print " + seq.length + " PageRank scores: ");
 		System.out.println("======================================");
-		if ( scores == null || seq == null ) { return; }
+		if ( scores == null ) { return; }
 		int num = Math.min(seq.length, scores.length);
 		int border = scores.length - 1;
 		for (int i = 0; i < num; i++) {
@@ -357,7 +362,10 @@ public class PageRank {
 		return aG;
 	}
 
-	// Perform Monte Carlo simulation of random walks on the graph
+	/**
+	 *  Perform Monte Carlo simulation of random walks.
+	 *  MC end-point with random start.
+	 */
 	private double[] MonteCarloSim1() {
 		int numberOfDocs = docNumber.size();
 		int[] walkEndCnt = new int[numberOfDocs];
@@ -384,6 +392,30 @@ public class PageRank {
 		return Arrays.stream(walkEndCnt)
 					 .mapToDouble(i -> (double) i / numberOfDocs)
 					 .toArray();
+	}
+
+	/**
+	 *  Perform Monte Carlo simulation of random walks.
+	 *  MC end-point with cyclic start.
+	 */
+	private double[] MonteCarloSim2() {
+		return new double[0];
+	}
+
+	/**
+	 *  Perform Monte Carlo simulation of random walks.
+	 *  MC complete path stopping at dangling nodes.
+	 */
+	private double[] MonteCarloSim4() {
+		return new double[0];
+	}
+
+	/**
+	 *  Perform Monte Carlo simulation of random walks.
+	 *  MC complete path with random start.
+	 */
+	private double[] MonteCarloSim5() {
+		return new double[0];
 	}
 
     /* --------------------------------------------- */
