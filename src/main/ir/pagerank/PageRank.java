@@ -318,7 +318,7 @@ public class PageRank {
     }
 
 	// Calculate the distance between point a and b
-	private double distance(double[] a, double[] b) {
+	public double distance(double[] a, double[] b) {
 		double sum = 0.0;
 		for (int j = 0; j < a.length; j++) {
 			double sumComponent = a[j] - b[j];
@@ -328,7 +328,7 @@ public class PageRank {
     }
 
 	// Calculate the modulus length of vector a
-	private double norm(double[] a, double dim) {
+	public double norm(double[] a, double dim) {
 		double sum = 0.0;
         for (double sumComponent : a) {
             sum += Math.pow(sumComponent, dim);
