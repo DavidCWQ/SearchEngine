@@ -32,7 +32,7 @@ public class HITSRanker {
     /**
      *   Mapping from the titles to internal document ids used in the links file
      */
-    HashMap<String,Integer> titleToId = new HashMap<String,Integer>();
+    HashMap<String,Integer> titleToId = new HashMap<>();
 
     /**
      *   Sparse vector containing hub scores
@@ -49,18 +49,18 @@ public class HITSRanker {
 
     /**
      * Constructs the HITSRanker object
-     * 
+     * <p>
      * A set of linked documents can be presented as a graph.
      * Each page is a node in graph with a distinct nodeID associated with it.
      * There is an edge between two nodes if there is a link between two pages.
-     * 
+     * <p>
      * Each line in the links file has the following format:
      *  nodeID;outNodeID1,outNodeID2,...,outNodeIDK
      * This means that there are edges between nodeID and outNodeIDi, where i is between 1 and K.
-     * 
+     * <p>
      * Each line in the titles file has the following format:
      *  nodeID;pageTitle
-     *  
+     * <p>
      * NOTE: nodeIDs are consistent between these two files, but they are NOT the same
      *       as docIDs used by search engine's Indexer
      *
@@ -146,15 +146,11 @@ public class HITSRanker {
         if (map == null) {
             return null;
         } else {
-            List<Map.Entry<Integer,Double> > list = new ArrayList<Map.Entry<Integer,Double> >(map.entrySet());
+            List<Map.Entry<Integer,Double> > list = new ArrayList<>(map.entrySet());
       
-            Collections.sort(list, new Comparator<Map.Entry<Integer,Double>>() {
-                public int compare(Map.Entry<Integer,Double> o1, Map.Entry<Integer,Double> o2) { 
-                    return (o2.getValue()).compareTo(o1.getValue()); 
-                } 
-            }); 
+            Collections.sort(list, (o1, o2) -> (o2.getValue()).compareTo(o1.getValue()));
               
-            HashMap<Integer,Double> res = new LinkedHashMap<Integer,Double>(); 
+            HashMap<Integer,Double> res = new LinkedHashMap<>();
             for (Map.Entry<Integer,Double> el : list) { 
                 res.put(el.getKey(), el.getValue()); 
             }
@@ -164,15 +160,15 @@ public class HITSRanker {
 
 
     /**
-     * Write the first `k` entries of a hash map `map` to the file `fname`.
+     * Write the first `k` entries of a hash map `map` to the file `fName`.
      *
      * @param      map        A hash map
-     * @param      fname      The filename
+     * @param      fName      The filename
      * @param      k          A number of entries to write
      */
-    void writeToFile(HashMap<Integer,Double> map, String fname, int k) {
+    void writeToFile(HashMap<Integer,Double> map, String fName, int k) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(fname));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fName));
             
             if (map != null) {
                 int i = 0;
@@ -183,7 +179,7 @@ public class HITSRanker {
                 }
             }
             writer.close();
-        } catch (IOException e) {}
+        } catch (IOException ignored) {}
     }
 
 
