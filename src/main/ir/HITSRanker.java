@@ -14,35 +14,48 @@ import java.io.*;
 public class HITSRanker {
 
     /**
-     *   Max number of iterations for HITS
+     *  Max number of iterations for HITS
      */
     final static int MAX_NUMBER_OF_STEPS = 1000;
 
     /**
-     *   Convergence criterion: hub and authority scores do not 
-     *   change more that EPSILON from one iteration to another.
+     *  Convergence criterion: hub and authority scores do not
+     *  change more that EPSILON from one iteration to another.
      */
     final static double EPSILON = 0.001;
 
     /**
-     *   The inverted index
+     *  The inverted index
      */
     Index index;
 
     /**
-     *   Mapping from the titles to internal document ids used in the links file
+     *  Mapping from the titles to internal document ids used in the links file
      */
     HashMap<String,Integer> titleToId = new HashMap<>();
 
     /**
-     *   Sparse vector containing hub scores
+     *  Sparse vector containing hub scores
      */
     HashMap<Integer,Double> hubs;
 
     /**
-     *   Sparse vector containing authority scores
+     *  Sparse vector containing authority scores
      */
     HashMap<Integer,Double> authorities;
+
+    /**
+     *  A memory-efficient representation of the transition matrix.
+     *  The outlinks are represented as a HashMap, whose keys are
+     *  the numbers of the documents linked from
+     */
+    private final HashMap<Integer,List<Integer>> outlinks = new HashMap<>();
+
+    /** The directory where the pagerank related files are stored. */
+    private static final String RANK_DIR = "src/main/ir/pagerank/";
+
+    /** The directory where the pagerank result are stored. */
+    private static final String RESULT_DIR = "src/main/resources/";
 
     
     /* --------------------------------------------- */
@@ -64,7 +77,7 @@ public class HITSRanker {
      * NOTE: nodeIDs are consistent between these two files, but they are NOT the same
      *       as docIDs used by search engine's Indexer
      *
-     * @param      linksFilename   File containing the links of the graph
+     * @param      linksFilename   File containing the links of the graph+
      * @param      titlesFilename  File containing the mapping between nodeIDs and pages titles
      * @param      index           The inverted index
      */
@@ -77,13 +90,13 @@ public class HITSRanker {
     /* --------------------------------------------- */
 
     /**
-     * A utility function that gets a file name given its path.
-     * For example, given the path "davisWiki/hello.f",
-     * the function will return "hello.f".
+     *  A utility function that gets a file name given its path.
+     *  For example, given the path "davisWiki/hello.f",
+     *  the function will return "hello.f".
      *
-     * @param      path  The file path
+     *  @param      path  The file path
      *
-     * @return     The file name.
+     *  @return     The file name.
      */
     private String getFileName( String path ) {
         String result = "";
@@ -96,21 +109,19 @@ public class HITSRanker {
 
 
     /**
-     * Reads the files describing the graph of the given set of pages.
+     *  Reads the files describing the graph of the given set of pages.
      *
-     * @param      linksFilename   File containing the links of the graph
-     * @param      titlesFilename  File containing the mapping between nodeIDs and pages titles
+     *  @param      linksFilename   File containing the links of the graph
+     *  @param      titlesFilename  File containing the mapping between nodeIDs and pages titles
      */
     void readDocs( String linksFilename, String titlesFilename ) {
-        //
-        // YOUR CODE HERE
-        //
+        
     }
 
     /**
-     * Perform HITS iterations until convergence
+     *  Perform HITS iterations until convergence
      *
-     * @param      titles  The titles of the documents in the root set
+     *  @param      titles  The titles of the documents in the root set
      */
     private void iterate(String[] titles) {
         //
@@ -120,12 +131,11 @@ public class HITSRanker {
 
 
     /**
-     * Rank the documents in the subgraph induced by the documents present
-     * in the postings list `post`.
+     *  Rank the documents in the subgraph induced by the documents present
+     *  in the postings list `post`.
      *
-     * @param      post  The list of postings fulfilling a certain information need
-     *
-     * @return     A list of postings ranked according to the hub and authority scores.
+     *  @param      post  The list of postings fulfilling a certain information need
+     *  @return     A list of postings ranked according to the hub and authority scores.
      */
     PostingsList rank(PostingsList post) {
         //
@@ -136,11 +146,10 @@ public class HITSRanker {
 
 
     /**
-     * Sort a hash map by values in the descending order
+     *  Sort a hash map by values in the descending order
      *
-     * @param      map    A hash map to sorted
-     *
-     * @return     A hash map sorted by values
+     *  @param      map    A hash map to sorted
+     *  @return     A hash map sorted by values
      */
     private HashMap<Integer,Double> sortHashMapByValue(HashMap<Integer,Double> map) {
         if (map == null) {
@@ -160,11 +169,11 @@ public class HITSRanker {
 
 
     /**
-     * Write the first `k` entries of a hash map `map` to the file `fName`.
+     *  Write the first `k` entries of a hash map `map` to the file `fName`.
      *
-     * @param      map        A hash map
-     * @param      fName      The filename
-     * @param      k          A number of entries to write
+     *  @param      map        A hash map
+     *  @param      fName      The filename
+     *  @param      k          A number of entries to write
      */
     void writeToFile(HashMap<Integer,Double> map, String fName, int k) {
         try {
@@ -184,7 +193,7 @@ public class HITSRanker {
 
 
     /**
-     * Rank all the documents in the links file. Produces two files:
+     *  Rank all the documents in the links file. Produces two files:
      *  hubs_top_30.txt with documents containing top 30 hub scores
      *  authorities_top_30.txt with documents containing top 30 authority scores
      */
@@ -205,7 +214,11 @@ public class HITSRanker {
             System.err.println( "Please give the names of the link and title files" );
         }
         else {
-            HITSRanker hr = new HITSRanker( args[0], args[1], null );
+            HITSRanker hr = new HITSRanker(
+                    RANK_DIR + args[0],
+                    RANK_DIR + args[1],
+                    null
+            );
             hr.rank();
         }
     }
