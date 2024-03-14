@@ -314,8 +314,8 @@ public class HITSRanker {
         iterate(titleToId.keySet().toArray(new String[0]));
         HashMap<Integer,Double> sortedHubs = sortHashMapByValue(hubs);
         HashMap<Integer,Double> sortedAuthorities = sortHashMapByValue(authorities);
-        writeToFile(sortedHubs, "hubs_top_30.txt", 30);
-        writeToFile(sortedAuthorities, "authorities_top_30.txt", 30);
+        writeToFile(sortedHubs, "hubs_top_30_result.txt", 30);
+        writeToFile(sortedAuthorities, "authorities_top_30_result.txt", 30);
     }
 
 
