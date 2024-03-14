@@ -220,6 +220,8 @@ public class HITSRanker {
      */
     private void iterate( String[] titles ) {
         // YOUR CODE HERE
+        hubs = new HashMap<>();
+        authorities = new HashMap<>();
 
         // Initialize newA, newH to 1.
         for ( String page : titles ) {
@@ -234,6 +236,7 @@ public class HITSRanker {
             updateScores( titles, false );
             normalizeScores( titles );
         }
+        System.err.println( "Exit iteration." );
     }
 
 
@@ -295,7 +298,10 @@ public class HITSRanker {
                 }
             }
             writer.close();
-        } catch (IOException ignored) {}
+            System.err.println( "Result saved: " + fName );
+        } catch (IOException e) {
+            System.err.println( "Error writing results: " + e.getMessage() );
+        }
     }
 
 
