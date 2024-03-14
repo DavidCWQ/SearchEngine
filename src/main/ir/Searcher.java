@@ -21,13 +21,17 @@ public class Searcher {
     /** The k-gram index to be searched by this Searcher */
     KGramIndex kgIndex;
 
+    /** The HRanker used for HITS rank search. */
+    HITSRanker HRanker;
+
     /** The ratio to balance between TF-IDF and PageRank scores. */
     double RANK_RATIO = 0.96;
     
     /** Constructor */
-    public Searcher( Index index, KGramIndex kgIndex ) {
+    public Searcher( Index index, KGramIndex kgIndex, HITSRanker HRanker ) {
         this.index = index;
         this.kgIndex = kgIndex;
+        this.HRanker = HRanker;
     }
 
     /**
@@ -106,6 +110,21 @@ public class Searcher {
         // If the query is an empty one
         if (query.queryTerm.isEmpty()) {
             return null;
+        }
+        if (rankingType == RankingType.HITS_RANK) {
+            PostingsList postingsSets = null;
+            for (Query.QueryTerm queryTerm : query.queryTerm) {
+                // The postings list for term t
+                PostingsList postings = index.getPostings(queryTerm.term);
+                for (PostingsEntry entry : postings.getList()) {
+                    // Integrate postings of all terms into Sets
+                    if (postingsSets == null) {
+                        postingsSets = new PostingsList(entry);
+                    }
+                    postingsSets.add(entry);
+                }
+            }
+            return HRanker.rank(postingsSets);
         }
         return getRankResult(query, rankingType, normType);
     }
@@ -209,9 +228,6 @@ public class Searcher {
                 double eucLength = index.docEucLengths.get(doc.docID);
                 score1 /= (normType == NormalizationType.EUCLIDEAN ? eucLength : docLength);
                 return score1 * (1 - RANK_RATIO) + score2 * RANK_RATIO;
-            }
-            case HITS_RANK: {
-
             }
             default:
                 throw new IllegalArgumentException();

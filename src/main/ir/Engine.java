@@ -22,6 +22,9 @@ public class Engine {
     /** The indexer creating the search index. */
     Indexer indexer;
 
+    /** The HRanker used for HITS rank search. */
+    HITSRanker HRanker;
+
     /** K-gram index */
     KGramIndex kgIndex;
 
@@ -49,6 +52,9 @@ public class Engine {
     /** The file containing the pagerank scores. */
     String rank_file = "";
 
+    /** The file containing the pagerank IDs and links. */
+    String link_file = "";
+
     /** The file containing the pagerank IDs and corresponding docNames. */
     String title_file = "";
 
@@ -75,7 +81,8 @@ public class Engine {
     public Engine( String[] args ) {
         decodeArgs( args );
         indexer = new Indexer( index, kgIndex, patterns_file );
-        searcher = new Searcher( index, kgIndex );
+        HRanker = new HITSRanker( link_file, title_file, index );
+        searcher = new Searcher( index, kgIndex, HRanker );
         gui = new SearchGUI( this );
         gui.init();
         /* 
@@ -162,6 +169,11 @@ public class Engine {
                         title_file = TITLE_DIR + args[i++];
                     }
                     break;
+                case "-lk":
+                    i++;
+                    if (i < args.length) {
+                        link_file = TITLE_DIR + args[i++];
+                    }
                 case "-ni":
                     i++;
                     is_indexing = false;

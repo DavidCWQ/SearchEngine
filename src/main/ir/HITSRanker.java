@@ -68,7 +68,7 @@ public class HITSRanker {
      * There is an edge between two nodes if there is a link between two pages.
      * <p>
      * Each line in the links file has the following format:
-     *  nodeID;outNodeID1,outNodeID2,...,outNodeIDK
+     *  nodeID;outNodeID1,outNodeID2,...,outNodeIDk
      * This means that there are edges between nodeID and outNodeIDi, where i is between 1 and K.
      * <p>
      * Each line in the titles file has the following format:
@@ -158,6 +158,11 @@ public class HITSRanker {
             System.err.println( "Error finding titlesFile: " + e.getMessage() );
         } catch (IOException e) {
             System.err.println( "Error reading titlesFile: " + e.getMessage() );
+        }
+
+        // Check that the links file matches the titles file
+        if (titleToId.size() != matrix.size()) {
+            throw new InputMismatchException( "Error matching linksFile with titlesFile." );
         }
     }
 
