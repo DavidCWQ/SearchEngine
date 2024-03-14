@@ -185,7 +185,7 @@ public class SearchGUI extends JFrame {
                     displayResults( MAX_RESULTS, elapsedTime/1000.0 );
                 } else {
                     displayInfoText( "Found 0 matching document(s)" );
-                    
+
                     if (engine.speller != null) {
                         SpellingOptionsDialog dialog = new SpellingOptionsDialog(50);
                         startTime = System.currentTimeMillis();
@@ -203,19 +203,19 @@ public class SearchGUI extends JFrame {
                     }
                 }
             }
-            };
+        };
 
         // A search is carried out when the user presses "return" in the search box.
         queryWindow.registerKeyboardAction( search,
-                            "",
-                            KeyStroke.getKeyStroke( "ENTER" ),
-                            JComponent.WHEN_FOCUSED );
+                "",
+                KeyStroke.getKeyStroke( "ENTER" ),
+                JComponent.WHEN_FOCUSED );
 
         Action quit = new AbstractAction() {
             public void actionPerformed( ActionEvent e ) {
                 System.exit( 0 );
             }
-            };
+        };
         quitItem.addActionListener( quit );
 
 
@@ -223,35 +223,35 @@ public class SearchGUI extends JFrame {
             public void actionPerformed( ActionEvent e ) {
                 queryType = QueryType.INTERSECTION_QUERY;
             }
-            };
+        };
         intersectionItem.addActionListener( setIntersectionQuery );
 
         Action setPhraseQuery = new AbstractAction() {
             public void actionPerformed( ActionEvent e ) {
                 queryType = QueryType.PHRASE_QUERY;
             }
-            };
+        };
         phraseItem.addActionListener( setPhraseQuery );
 
         Action setRankedQuery = new AbstractAction() {
             public void actionPerformed( ActionEvent e ) {
                 queryType = QueryType.RANKED_QUERY;
             }
-            };
+        };
         rankedItem.addActionListener( setRankedQuery );
 
         Action setTfidfRanking = new AbstractAction() {
             public void actionPerformed( ActionEvent e ) {
                 rankingType = RankingType.TF_IDF;
             }
-            };
+        };
         tfidfItem.addActionListener( setTfidfRanking );
 
         Action setPagerankRanking = new AbstractAction() {
             public void actionPerformed( ActionEvent e ) {
                 rankingType = RankingType.PAGERANK;
             }
-            };
+        };
         pagerankItem.addActionListener( setPagerankRanking );
 
 
@@ -259,27 +259,27 @@ public class SearchGUI extends JFrame {
             public void actionPerformed( ActionEvent e ) {
                 rankingType = RankingType.COMBINATION;
             }
-            };
+        };
         combinationItem.addActionListener( setCombinationRanking );
 
         Action setNumberOfWordsNormalization = new AbstractAction() {
             public void actionPerformed( ActionEvent e ) {
                 normType = NormalizationType.NUMBER_OF_WORDS;
             }
-            };
+        };
         numberOfWordsItem.addActionListener( setNumberOfWordsNormalization );
 
         Action setEuclideanNormalization = new AbstractAction() {
             public void actionPerformed( ActionEvent e ) {
                 normType = NormalizationType.EUCLIDEAN;
             }
-            };
+        };
         euclideanLengthItem.addActionListener( setEuclideanNormalization );
 
     }
 
 
-   /* ----------------------------------------------- */
+    /* ----------------------------------------------- */
 
     /**
      *  Clears the results window and writes an info text in it.
@@ -321,7 +321,7 @@ public class SearchGUI extends JFrame {
             MouseAdapter showDocument = new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     String fileName = ((JLabel)e.getSource()).getText().split(" ")[1];
-                    String contents = "Displaying contents of " + fileName + "\n" + MARKER + "\n";
+                    StringBuilder contents = new StringBuilder("Displaying contents of " + fileName + "\n" + MARKER + "\n");
                     String line;
 
                     Queue<String> fqueue = new LinkedList<>();
@@ -349,7 +349,7 @@ public class SearchGUI extends JFrame {
 
                         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                             while ((line = br.readLine()) != null) {
-                                contents += line.trim() + "\n";
+                                contents.append(line.trim()).append("\n");
                             }
                             foundFile = true;
                             break;
@@ -360,10 +360,10 @@ public class SearchGUI extends JFrame {
                     }
 
                     if (!foundFile) {
-                        contents += "No file found\n";
+                        contents.append("No file found\n");
                     }
 
-                    docTextView.setText(contents);
+                    docTextView.setText(contents.toString());
                     docTextView.setCaretPosition(0);
                 }
             };
@@ -414,15 +414,11 @@ public class SearchGUI extends JFrame {
      */
     String displayableFileName( String path ) {
         String result = "";
-        StringTokenizer tok = new StringTokenizer( path, "\\/" );
+        StringTokenizer tok = new StringTokenizer( path, File.separator );
         while ( tok.hasMoreTokens() ) {
             result = tok.nextToken();
         }
         return result;
     }
-
-
-
-
 
 }
