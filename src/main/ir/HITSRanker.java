@@ -214,7 +214,7 @@ public class HITSRanker {
 
     private boolean isConverge( Double[] prev, Double[] next, boolean print ) {
         double sum = 0.0;
-        for ( int j = 0; j < titleToId.size(); j++ ) {
+        for ( int j = 0; j < prev.length; j++ ) {
             double sumComponent = prev[j] - next[j];
             sum += sumComponent * sumComponent;
         }
@@ -249,7 +249,7 @@ public class HITSRanker {
             normalizeScores( titles );
             Double[] next = hubs.values().toArray(new Double[0]);
             // Choose hubs for convergence judgement
-            if (isConverge( prev, next, true )) return;
+            if (isConverge( prev, next, print )) return;
         }
         System.err.println( "Exit iteration." );
     }
