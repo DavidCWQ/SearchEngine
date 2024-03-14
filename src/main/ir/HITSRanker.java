@@ -49,7 +49,7 @@ public class HITSRanker {
      *  The outlinks are represented as a HashMap, whose keys are
      *  the numbers of the documents linked from
      */
-    private final HashMap<Integer,List<Integer>> outlinks = new HashMap<>();
+    private final HashMap<Integer, HashMap<Integer, Boolean>> matrix = new HashMap<>();
 
     /** The directory where the pagerank related files are stored. */
     private static final String RANK_DIR = "src/main/ir/pagerank/";
@@ -95,12 +95,11 @@ public class HITSRanker {
      *  the function will return "hello.f".
      *
      *  @param      path  The file path
-     *
      *  @return     The file name.
      */
     private String getFileName( String path ) {
         String result = "";
-        StringTokenizer tok = new StringTokenizer( path, "\\/" );
+        StringTokenizer tok = new StringTokenizer( path, File.separator );
         while ( tok.hasMoreTokens() ) {
             result = tok.nextToken();
         }
@@ -127,12 +126,12 @@ public class HITSRanker {
                 StringTokenizer tok = new StringTokenizer(
                         line.substring(delim + 1), ","
                 );
-                List<Integer> outlinks = new ArrayList<>();
+                HashMap<Integer, Boolean> outlinks = new HashMap<>();
                 while ( tok.hasMoreTokens() ) {
                     String outLink = tok.nextToken();
-                    outlinks.add(Integer.parseInt( outLink ));
+                    outlinks.put( Integer.parseInt( outLink ), true );
                 }
-                this.outlinks.put(fromDoc, outlinks);
+                this.matrix.put(fromDoc, outlinks);
             }
             System.err.print( "Reading completed." );
         } catch ( FileNotFoundException e ) {
@@ -162,15 +161,79 @@ public class HITSRanker {
         }
     }
 
+    private void updateScores( String[] pages, boolean transposeA ) {
+        for ( String page : pages ) {
+            double sum = 0;
+            int _i = titleToId.get( page );
+            for ( String newPage : pages ) {
+                int _k = titleToId.get( newPage );
+                if ( transposeA ) {
+                    // If the page has outlinks to a new page
+                    if (this.matrix.get(_k) != null) {
+                        if (this.matrix.get(_k).get(_i) != null)
+                            sum += hubs.get(_k);
+                    }
+                } else {
+                    // If the page has outlinks to a new page
+                    if (this.matrix.get(_i) != null) {
+                        if (this.matrix.get(_i).get(_k) != null)
+                            sum += authorities.get(_k);
+                    }
+                }
+            }
+            if ( transposeA ) authorities.replace(_i, sum);
+            else hubs.replace(_i, sum);
+        }
+    }
+
+    private void normalizeScores( String[] pages ) {
+        double normA = 0, normH = 0;
+        for ( String page : pages ) {
+            int _i = titleToId.get( page );
+            normA += Math.pow( authorities.get(_i), 2 );
+            normH += Math.pow( hubs.get(_i), 2 );
+        }
+        normA = Math.sqrt(normA);
+        normH = Math.sqrt(normH);
+        for ( String page : pages ) {
+            int _i = titleToId.get( page );
+            authorities.replace(_i, authorities.get(_i) / normA);
+            hubs.replace(_i, hubs.get(_i) / normH);
+        }
+    }
+
+    private boolean isConverge() {
+        Double[] H = hubs.values().toArray(new Double[0]);
+        Double[] A = authorities.values().toArray(new Double[0]);
+        double sum = 0.0;
+        for ( int j = 0; j < titleToId.size(); j++ ) {
+            double sumComponent = A[j] - H[j];
+            sum += sumComponent * sumComponent;
+        }
+        return Math.sqrt(sum) < EPSILON;
+    }
+
     /**
      *  Perform HITS iterations until convergence
      *
      *  @param      titles  The titles of the documents in the root set
      */
-    private void iterate(String[] titles) {
-        //
+    private void iterate( String[] titles ) {
         // YOUR CODE HERE
-        //
+
+        // Initialize newA, newH to 1.
+        for ( String page : titles ) {
+            int _i = titleToId.get( page );
+            authorities.put(_i, 1.0);
+            hubs.put(_i, 1.0);
+        }
+
+        // Start iterations.
+        for (int i = 0; i < MAX_NUMBER_OF_STEPS && !isConverge(); i++) {
+            updateScores( titles, true );
+            updateScores( titles, false );
+            normalizeScores( titles );
+        }
     }
 
 
@@ -221,7 +284,7 @@ public class HITSRanker {
      */
     void writeToFile(HashMap<Integer,Double> map, String fName, int k) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(fName));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(RESULT_DIR + fName));
             
             if (map != null) {
                 int i = 0;
@@ -266,4 +329,4 @@ public class HITSRanker {
             hr.rank();
         }
     }
-} 
+}
