@@ -202,12 +202,10 @@ public class HITSRanker {
         }
     }
 
-    private boolean isConverge( boolean print ) {
-        Double[] H = hubs.values().toArray(new Double[0]);
-        Double[] A = authorities.values().toArray(new Double[0]);
+    private boolean isConverge( Double[] prev, Double[] next, boolean print ) {
         double sum = 0.0;
         for ( int j = 0; j < titleToId.size(); j++ ) {
-            double sumComponent = A[j] - H[j];
+            double sumComponent = prev[j] - next[j];
             sum += sumComponent * sumComponent;
         }
         double res= Math.sqrt(sum);
@@ -232,13 +230,16 @@ public class HITSRanker {
             hubs.put(_i, 1.0);
         }
 
-        // Start iterations.
+        System.err.println( "Iterating..." );
         for (int i = 0; i < MAX_NUMBER_OF_STEPS; i++) {
             if (print) System.out.print( "Iteration: " + i + ", ");
+            Double[] prev = hubs.values().toArray(new Double[0]);
             updateScores( titles, true );
             updateScores( titles, false );
             normalizeScores( titles );
-            if (isConverge(true)) return;
+            Double[] next = hubs.values().toArray(new Double[0]);
+            // Choose hubs for convergence judgement
+            if (isConverge( prev, next, true )) return;
         }
         System.err.println( "Exit iteration." );
     }
