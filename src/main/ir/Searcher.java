@@ -210,9 +210,11 @@ public class Searcher {
                 score1 /= (normType == NormalizationType.EUCLIDEAN ? eucLength : docLength);
                 return score1 * (1 - RANK_RATIO) + score2 * RANK_RATIO;
             }
+            case HITS_RANK: {
+
+            }
             default:
                 throw new IllegalArgumentException();
         }
     }
-
 }

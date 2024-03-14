@@ -35,10 +35,10 @@ public class SearchGUI extends JFrame {
     /**  The query type (either intersection, phrase, or ranked). */
     QueryType queryType = QueryType.INTERSECTION_QUERY;
 
-    /**  The ranking type (either tf-idf, pagerank, or combination). */
+    /**  The ranking type (either TF-IDF, pagerank, or combination). */
     RankingType rankingType = RankingType.TF_IDF;
 
-    /**  The type of normalization for tf-idf computation */
+    /**  The type of normalization for TF-IDF computation */
     NormalizationType normType = NormalizationType.NUMBER_OF_WORDS;
 
     /**  Max number of results to display. */
@@ -70,9 +70,10 @@ public class SearchGUI extends JFrame {
     JRadioButtonMenuItem intersectionItem = new JRadioButtonMenuItem( "Intersection query" );
     JRadioButtonMenuItem phraseItem = new JRadioButtonMenuItem( "Phrase query" );
     JRadioButtonMenuItem rankedItem = new JRadioButtonMenuItem( "Ranked retrieval" );
-    JRadioButtonMenuItem tfidfItem = new JRadioButtonMenuItem( "tf-idf" );
+    JRadioButtonMenuItem tfidfItem = new JRadioButtonMenuItem( "TF-IDF" );
     JRadioButtonMenuItem pagerankItem = new JRadioButtonMenuItem( "PageRank" );
     JRadioButtonMenuItem combinationItem = new JRadioButtonMenuItem( "Combination" );
+    JRadioButtonMenuItem hitsRankItem = new JRadioButtonMenuItem( "HITS-Rank" );
     JRadioButtonMenuItem numberOfWordsItem = new JRadioButtonMenuItem( "Number of words" );
     JRadioButtonMenuItem euclideanLengthItem = new JRadioButtonMenuItem( "Euclidean length" );
     ButtonGroup queries = new ButtonGroup();
@@ -114,6 +115,7 @@ public class SearchGUI extends JFrame {
         rankingMenu.add( tfidfItem );
         rankingMenu.add( pagerankItem );
         rankingMenu.add( combinationItem );
+        rankingMenu.add( hitsRankItem );
         normalizationMenu.add(numberOfWordsItem);
         normalizationMenu.add(euclideanLengthItem);
         queries.add( intersectionItem );
@@ -122,6 +124,7 @@ public class SearchGUI extends JFrame {
         ranking.add( tfidfItem );
         ranking.add( pagerankItem );
         ranking.add( combinationItem );
+        ranking.add( hitsRankItem );
         normalization.add(numberOfWordsItem);
         normalization.add(euclideanLengthItem);
         intersectionItem.setSelected( true );
@@ -261,6 +264,13 @@ public class SearchGUI extends JFrame {
             }
         };
         combinationItem.addActionListener( setCombinationRanking );
+
+        Action setHitsRanking = new AbstractAction() {
+            public void actionPerformed( ActionEvent e ) {
+                rankingType = RankingType.HITS_RANK;
+            }
+        };
+        hitsRankItem.addActionListener( setHitsRanking );
 
         Action setNumberOfWordsNormalization = new AbstractAction() {
             public void actionPerformed( ActionEvent e ) {
