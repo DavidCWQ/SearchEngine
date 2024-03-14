@@ -102,7 +102,7 @@ public class PersistentHashedIndex implements Index {
             String errMessage = e.getMessage();
             System.err.println("An error occurred: " + errMessage);
             System.out.println("Indexing restarts: saved in '"
-                    + errMessage.substring(0, errMessage.lastIndexOf("\\"))
+                    + errMessage.substring(0, errMessage.lastIndexOf(File.separator))
                     + "'. Please ensure that '-ni' option is removed from your CL arguments.");
         } catch ( IOException e ) {
             System.err.println("ERROR: IO Exception!");
