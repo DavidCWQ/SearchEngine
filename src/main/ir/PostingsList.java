@@ -64,7 +64,7 @@ public class PostingsList {
 
     /** Number of postings in this list. */
     public int size() {
-    return list.size();
+        return list.size();
     }
 
     /** Returns the ith posting. */

@@ -154,6 +154,7 @@ public class Indexer {
                     Integer f_id = docName.get(name);
                     Double score = docRank.get(f_id);
                     index.docRanks.put( id, score );
+                    index.docIDs.put( name, id );
                 }
             }
             catch (NullPointerException e) {
@@ -161,7 +162,7 @@ public class Indexer {
             }
         }
         else {
-            System.err.println("ERROR: rank file and title file doesn't match!");
+            throw new InputMismatchException( "Error matching rank file with title file." );
         }
 
     }

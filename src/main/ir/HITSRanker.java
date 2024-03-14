@@ -25,6 +25,11 @@ public class HITSRanker {
     final static double EPSILON = 0.001;
 
     /**
+     *  Factor of linear combination (auth, FACTOR * hub).
+     */
+    final static double FACTOR = 0.6;
+
+    /**
      *  The inverted index
      */
     Index index;
@@ -258,10 +263,26 @@ public class HITSRanker {
      *  @return     A list of postings ranked according to the hub and authority scores.
      */
     PostingsList rank(PostingsList post) {
-        //
         // YOUR CODE HERE
-        //
-        return null;
+        HashSet<String> titles = new HashSet<>();
+        for (PostingsEntry entry: post.getList()) {
+            String title = index.docNames.get(entry.docID);
+            titles.add(title.substring(title.lastIndexOf(File.separator) + 1));
+        }
+
+        iterate(titles.toArray(new String[0]), false);
+
+        PostingsList result = null;
+        for (String title : titles) {
+            int _i = titleToId.get(title), i = index.docIDs.get(title);
+            double docScore = authorities.get(_i) + FACTOR * hubs.get(_i);
+            // If it is the first intersection
+            if (result == null) { result = new PostingsList(new PostingsEntry(i, docScore)); }
+            // If it is NOT the first time
+            else { result.add(new PostingsEntry(i, docScore)); }
+        }
+
+        return result;
     }
 
 

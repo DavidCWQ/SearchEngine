@@ -111,6 +111,8 @@ public class Searcher {
         if (query.queryTerm.isEmpty()) {
             return null;
         }
+
+        PostingsList result;
         if (rankingType == RankingType.HITS_RANK) {
             PostingsList postingsSets = null;
             for (Query.QueryTerm queryTerm : query.queryTerm) {
@@ -124,9 +126,19 @@ public class Searcher {
                     postingsSets.add(entry);
                 }
             }
-            return HRanker.rank(postingsSets);
+            if (postingsSets == null) {
+                return null;
+            }
+            result = HRanker.rank(postingsSets);
         }
-        return getRankResult(query, rankingType, normType);
+        else {
+            result = getRankResult(query, rankingType, normType);
+        }
+
+        // Sort the docs by Score
+        if (result == null) return null;
+        else result.sortByScore();
+        return result;
     }
 
     /**
@@ -149,7 +161,7 @@ public class Searcher {
      *  @param query is the searching query, containing query terms and weights.
      *  @param normType NUMBER_OF_WORDS(per doc), EUCLIDEAN(magnitude), etc.
      *  @param rankingType is the ranking type to use for scoring and sorting.
-     *  @return a posting list containing docIDs sorted by their ranking scores
+     *  @return a posting list containing docIDs and their ranking scores
      *          given query phrase
      */
     private PostingsList getRankResult(Query query, RankingType rankingType,
@@ -183,10 +195,6 @@ public class Searcher {
             // If it is NOT the first time
             else { result.add(new PostingsEntry(docID, docScore)); }
         }
-
-        // Sort the docs by Score
-        if (result == null) return null;
-        else result.sortByScore();
         return result;
     }
 
