@@ -133,7 +133,7 @@ public class HITSRanker {
                 }
                 this.matrix.put(fromDoc, outlinks);
             }
-            System.err.print( "Reading completed." );
+            System.err.println( "Reading completed." );
         } catch ( FileNotFoundException e ) {
             System.err.println( "Error finding linkFile: " + e.getMessage() );
         } catch ( IOException e ) {
@@ -146,14 +146,14 @@ public class HITSRanker {
             System.err.print( "Reading titles file... " );
             BufferedReader in = new BufferedReader( new FileReader( titlesFilename ));
             while (( line = in.readLine() ) != null ) {
-                String[] tokens = line.split(":");
+                String[] tokens = line.split(";");
                 if ( tokens.length == 2 ) {
                     titleToId.put( tokens[1], Integer.parseInt(tokens[0]) );
                 } else {
                     System.err.println( "Invalid line format: " + line );
                 }
             }
-            System.err.print( "Reading completed." );
+            System.err.println( "Reading completed." );
         } catch (FileNotFoundException e) {
             System.err.println( "Error finding titlesFile: " + e.getMessage() );
         } catch (IOException e) {
