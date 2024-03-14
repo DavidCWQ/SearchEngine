@@ -202,7 +202,7 @@ public class HITSRanker {
         }
     }
 
-    private boolean isConverge() {
+    private boolean isConverge( boolean print ) {
         Double[] H = hubs.values().toArray(new Double[0]);
         Double[] A = authorities.values().toArray(new Double[0]);
         double sum = 0.0;
@@ -210,7 +210,9 @@ public class HITSRanker {
             double sumComponent = A[j] - H[j];
             sum += sumComponent * sumComponent;
         }
-        return Math.sqrt(sum) < EPSILON;
+        double res= Math.sqrt(sum);
+        if (print) System.out.println( "ε: " + res );
+        return res < EPSILON;
     }
 
     /**
@@ -218,7 +220,7 @@ public class HITSRanker {
      *
      *  @param      titles  The titles of the documents in the root set
      */
-    private void iterate( String[] titles ) {
+    private void iterate( String[] titles, boolean print ) {
         // YOUR CODE HERE
         hubs = new HashMap<>();
         authorities = new HashMap<>();
@@ -231,10 +233,12 @@ public class HITSRanker {
         }
 
         // Start iterations.
-        for (int i = 0; i < MAX_NUMBER_OF_STEPS && !isConverge(); i++) {
+        for (int i = 0; i < MAX_NUMBER_OF_STEPS; i++) {
+            if (print) System.out.print( "Iteration: " + i + ", ");
             updateScores( titles, true );
             updateScores( titles, false );
             normalizeScores( titles );
+            if (isConverge(true)) return;
         }
         System.err.println( "Exit iteration." );
     }
@@ -311,7 +315,7 @@ public class HITSRanker {
      *  authorities_top_30.txt with documents containing top 30 authority scores
      */
     void rank() {
-        iterate(titleToId.keySet().toArray(new String[0]));
+        iterate(titleToId.keySet().toArray(new String[0]), true);
         HashMap<Integer,Double> sortedHubs = sortHashMapByValue(hubs);
         HashMap<Integer,Double> sortedAuthorities = sortHashMapByValue(authorities);
         writeToFile(sortedHubs, "hubs_top_30_result.txt", 30);
