@@ -27,7 +27,7 @@ public class HITSRanker {
     /**
      *  Factor of linear combination (auth, FACTOR * hub).
      */
-    final static double FACTOR = 0.6;
+    final static double FACTOR = 1.0;
 
     /**
      *  The inverted index
@@ -38,6 +38,11 @@ public class HITSRanker {
      *  Mapping from the titles to internal document ids used in the links file
      */
     HashMap<String,Integer> titleToId = new HashMap<>();
+
+    /**
+     *  Mapping from the internal document ids used in the links file to titles
+     */
+    HashMap<Integer,String> idToTitle = new HashMap<>();
 
     /**
      *  Sparse vector containing hub scores
@@ -54,7 +59,7 @@ public class HITSRanker {
      *  The outlinks are represented as a HashMap, whose keys are
      *  the numbers of the documents linked from
      */
-    private final HashMap<Integer, HashMap<Integer, Boolean>> matrix = new HashMap<>();
+    private final HashMap<Integer, HashSet<Integer>> matrix = new HashMap<>();
 
     /** The directory where the pagerank related files are stored. */
     private static final String RANK_DIR = "src/main/ir/pagerank/";
@@ -131,10 +136,10 @@ public class HITSRanker {
                 StringTokenizer tok = new StringTokenizer(
                         line.substring(delim + 1), ","
                 );
-                HashMap<Integer, Boolean> outlinks = new HashMap<>();
+                HashSet<Integer> outlinks = new HashSet<>();
                 while ( tok.hasMoreTokens() ) {
                     String outLink = tok.nextToken();
-                    outlinks.put( Integer.parseInt( outLink ), true );
+                    outlinks.add( Integer.parseInt( outLink ));
                 }
                 this.matrix.put(fromDoc, outlinks);
             }
@@ -154,6 +159,7 @@ public class HITSRanker {
                 String[] tokens = line.split(";");
                 if ( tokens.length == 2 ) {
                     titleToId.put( tokens[1], Integer.parseInt(tokens[0]) );
+                    idToTitle.put( Integer.parseInt(tokens[0]), tokens[1] );
                 } else {
                     System.err.println( "Invalid line format: " + line );
                 }
@@ -171,44 +177,40 @@ public class HITSRanker {
         }
     }
 
-    private void updateScores( String[] pages, boolean transposeA ) {
-        for ( String page : pages ) {
+    private void updateScores( Integer[] pageIDs, boolean transposeA ) {
+        for ( Integer i : pageIDs ) {
             double sum = 0;
-            int _i = titleToId.get( page );
-            for ( String newPage : pages ) {
-                int _k = titleToId.get( newPage );
+            for ( Integer k : pageIDs ) {
                 if ( transposeA ) {
                     // If the page has outlinks to a new page
-                    if (this.matrix.get(_k) != null) {
-                        if (this.matrix.get(_k).get(_i) != null)
-                            sum += hubs.get(_k);
+                    if (this.matrix.get(k) != null) {
+                        if (this.matrix.get(k).contains(i))
+                            sum += hubs.get(k);
                     }
                 } else {
                     // If the page has outlinks to a new page
-                    if (this.matrix.get(_i) != null) {
-                        if (this.matrix.get(_i).get(_k) != null)
-                            sum += authorities.get(_k);
+                    if (this.matrix.get(i) != null) {
+                        if (this.matrix.get(i).contains(k))
+                            sum += authorities.get(k);
                     }
                 }
             }
-            if ( transposeA ) authorities.replace(_i, sum);
-            else hubs.replace(_i, sum);
+            if ( transposeA ) authorities.replace(i, sum);
+            else hubs.replace(i, sum);
         }
     }
 
-    private void normalizeScores( String[] pages ) {
+    private void normalizeScores( Integer[] pageIDs ) {
         double normA = 0, normH = 0;
-        for ( String page : pages ) {
-            int _i = titleToId.get( page );
-            normA += Math.pow( authorities.get(_i), 2 );
-            normH += Math.pow( hubs.get(_i), 2 );
+        for ( Integer id : pageIDs ) {
+            normA += Math.pow( authorities.get(id), 2 );
+            normH += Math.pow( hubs.get(id), 2 );
         }
         normA = Math.sqrt(normA);
         normH = Math.sqrt(normH);
-        for ( String page : pages ) {
-            int _i = titleToId.get( page );
-            authorities.replace(_i, authorities.get(_i) / normA);
-            hubs.replace(_i, hubs.get(_i) / normH);
+        for ( Integer id : pageIDs ) {
+            authorities.replace(id, authorities.get(id) / normA);
+            hubs.replace(id, hubs.get(id) / normH);
         }
     }
 
@@ -223,6 +225,13 @@ public class HITSRanker {
         return res < EPSILON;
     }
 
+    private Double[] getCurrentScores() {
+        ArrayList<Double> hubs = new ArrayList<>();
+        hubs.addAll( this.hubs.values() );
+        hubs.addAll( this.authorities.values() );
+        return hubs.toArray( new Double[0] );
+    }
+
     /**
      *  Perform HITS iterations until convergence
      *
@@ -233,21 +242,41 @@ public class HITSRanker {
         hubs = new HashMap<>();
         authorities = new HashMap<>();
 
+        HashSet<Integer> baseSet = new HashSet<>();
+        for (String title : titles) {
+            // Get the rank ID from docTitle
+            int f_id = titleToId.get(title);
+            // Add the root document
+            baseSet.add(f_id);
+            // Add documents linking from root document
+            if (matrix.get(f_id) != null)
+                baseSet.addAll(matrix.get(f_id));
+            // Add documents linking to root document
+            for (Integer doc : matrix.keySet()) {
+                if (matrix.get(doc).contains(f_id)) {
+                    baseSet.add(doc);
+                }
+            }
+        }
+
+        Integer[] titleIDs = baseSet.toArray(new Integer[0]);
+
         // Initialize newA, newH to 1.
-        for ( String page : titles ) {
-            int _i = titleToId.get( page );
+        for ( Integer _i : titleIDs ) {
             authorities.put(_i, 1.0);
             hubs.put(_i, 1.0);
         }
 
-        System.err.println( "Iterating..." );
+        if (print) System.err.println( "Iterating..." );
         for (int i = 0; i < MAX_NUMBER_OF_STEPS; i++) {
             if (print) System.out.print( "Iteration: " + i + ", ");
-            Double[] prev = hubs.values().toArray(new Double[0]);
-            updateScores( titles, true );
-            updateScores( titles, false );
-            normalizeScores( titles );
-            Double[] next = hubs.values().toArray(new Double[0]);
+
+            Double[] prev = getCurrentScores();
+            updateScores( titleIDs, true );
+            updateScores( titleIDs, false );
+            normalizeScores( titleIDs );
+            Double[] next = getCurrentScores();
+
             // Choose hubs for convergence judgement
             if (isConverge( prev, next, print )) return;
         }
