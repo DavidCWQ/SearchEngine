@@ -304,7 +304,7 @@ public class HITSRanker {
         PostingsList result = null;
         for (String title : titles) {
             int _i = titleToId.get(title), i = index.docIDs.get(title);
-            double docScore = Math.sqrt(authorities.get(_i) * hubs.get(_i));
+            double docScore = Math.sqrt(authorities.get(_i) * hubs.get(_i)); // Geometric Mean
             // If it is the first intersection
             if (result == null) { result = new PostingsList(new PostingsEntry(i, docScore)); }
             // If it is NOT the first time
