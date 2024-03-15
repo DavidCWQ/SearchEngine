@@ -25,7 +25,7 @@ public class HITSRanker {
     final static double EPSILON = 0.001;
 
     /**
-     *  Factor of linear combination (auth, FACTOR * hub).
+     *  Factor of linear combination (FACTOR * auth, hub).
      */
     final static double FACTOR = 1.0;
 
@@ -304,7 +304,7 @@ public class HITSRanker {
         PostingsList result = null;
         for (String title : titles) {
             int _i = titleToId.get(title), i = index.docIDs.get(title);
-            double docScore = authorities.get(_i) + FACTOR * hubs.get(_i);
+            double docScore = Math.sqrt(authorities.get(_i) * hubs.get(_i));
             // If it is the first intersection
             if (result == null) { result = new PostingsList(new PostingsEntry(i, docScore)); }
             // If it is NOT the first time
