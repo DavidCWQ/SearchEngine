@@ -9,14 +9,14 @@
 2. **CLI Arguments**:
 
    >`-m`: Specifies the method ID for the PageRank algorithm. Valid values range from 0 to 5.
-
-     - 0: Power iteration
-     - 1: MC end-point with random start
-     - 2: MC end-point with cyclic start
-     - 3: MC complete path
-     - 4: MC complete path stopping at dangling nodes
-     - 5: MC complete path with random start
-
+   > ```text
+   > 0: Power iteration
+   > 1: MC end-point with random start
+   > 2: MC end-point with cyclic start
+   > 3: MC complete path
+   > 4: MC complete path stopping at dangling nodes
+   > 5: MC complete path with random start
+   > ```
    >`-r`: Specifies the maximum number of epochs (iterations) for the PageRank algorithm.
 
 3. **Reading Input File**: The program reads the link file provided as input. This file contains information about the links between web pages. Each line represents a web page followed by its outbound links.
