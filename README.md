@@ -69,18 +69,36 @@ cd ..
 ```
 
 ```bash
-java -cp target/classes -Xmx1g ir.Engine -d davisWiki -l dd2477.png -p patterns.txt
+java -cp target/classes -Xmx1g ir.Engine -d davisWiki -l dd2477.png -p patterns.txt -r pagerank_result.txt -t davisTitles.txt -lk linksDavis.txt
 ```
 
 You can also run the search engine with a persistent index if you have the dataset indexed:
 
 ```bash
-java -cp target/classes -Xmx1g ir.Engine -d davisWiki -l dd2477.png -p patterns.txt -ni
+java -cp target/classes -Xmx1g ir.Engine -d davisWiki -l dd2477.png -p patterns.txt -r pagerank_result.txt -t davisTitles.txt -lk linksDavis.txt -ni
 ```
 
 Please remember to recompile the project after making any changes to the source code. 
 
 > You can do this by running the `compile_all.sh` script (for Unix-like systems) or `compile_all.bat` batch file (for Windows) located in the `scripts` directory.
+
+### Command Line Options
+
+The program supports the following command-line options:
+
+- `-d [dataset_name]`: Specify the dataset name (`davisWiki` by default).
+
+- `-p [pattern_file]`: Specify the `regex` file used in tokenization.
+
+- `-l [search_logo]`: Specify the project logo file `dd2477.png`.
+
+- `-r [rank_result]`: Specify the pagerank result file.
+
+- `-t [rank_title]`: Specify the pagerank title file.
+
+- `-lk [link_file]`: Specify the pagerank link file.
+
+- `-ni`: Disable indexing.
 
 ## License
 
