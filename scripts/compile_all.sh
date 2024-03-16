@@ -4,7 +4,8 @@ cd ../
 
 mkdir -p target/classes
 
-javac -cp . -d target/classes \
+javac -cp ".;src/main/lib/jcommon-1.0.23.jar;src/main/lib/jfreechart-1.0.19.jar" \
+    -d target/classes \
     src/main/ir/Engine.java \
     src/main/ir/HashedIndex.java \
     src/main/ir/HITSRanker.java \
@@ -25,4 +26,5 @@ javac -cp . -d target/classes \
     src/main/ir/SpellingOptionsDialog.java \
     src/main/ir/Tokenizer.java \
     src/tests/TokenTest.java \
-    src/main/ir/pagerank/PageRank.java
+    src/main/ir/pagerank/PageRank.java \
+    src/main/ir/pagerank/PageRankPlotting.java
