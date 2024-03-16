@@ -8,7 +8,7 @@ This repository contains the source code skeleton for implementing a rudimentary
 
 Through this project, I have the opportunity to learn and apply concepts related to information retrieval, indexing, ranking algorithms, and search engine implementation. The codebase provided in this repository serves as the foundation for implementing the search engine functionalities across three assignments, with each assignment building upon the previous one.
 
-For detailed instructions on each assignment, please refer to the `tasks` folder in this repository.
+For detailed instructions on each assignment, please refer to the `tasks` folder in this repository. The code base were created by Prof. Johan Boye et al., refactored and implemented by David Cao. 
 
 ## Dataset
 
@@ -60,7 +60,7 @@ Unzip them in the `src/main/datasets` directory.
 
    You may encounter some warnings during compilation; these can typically be ignored.
 
-### Usage
+### Usage & Examples
 
 Once the compilation is successful, you can run the search engine using the provided scripts. Here's an example script command to get started:
 
@@ -99,6 +99,30 @@ The program supports the following command-line options:
 - `-lk [link_file]`: Specify the pagerank link file.
 
 - `-ni`: Disable indexing.
+
+---
+
+### Directory Structure
+
+Here's an overview of the directory structure for this project.
+
+```
+.
+├── scripts/                 # Directory for scripts related to project automation
+├── src/                     # Source code files
+│   ├── main/                # Main application code
+│   │   ├── datasets/        # Directory for dataset files used in the project
+│   │   ├── ir/              # Java source files for Information Retrieval components
+│   │   ├── lib/             # Third-party libraries used in the project
+│   │   └── resources/       # Additional resource files used in the application
+│   └── test/                # Test code (partial)
+│       └── resources/       # Resource files used in test cases
+├── target/                  # Compiled output directory
+├── tasks/                   # Directory for task-related documentation and assignment PDF
+└── README.md                # Project README file providing an overview of the project
+```
+
+Feel free to explore each directory for more details on the contents.
 
 ## License
 
