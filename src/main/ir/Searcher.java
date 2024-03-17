@@ -25,7 +25,7 @@ public class Searcher {
     HITSRanker HRanker;
 
     /** The ratio to balance between TF-IDF and PageRank scores. */
-    double RANK_RATIO = 0.96;
+    double RANK_RATIO = 0.9;
     
     /** Constructor */
     public Searcher( Index index, KGramIndex kgIndex, HITSRanker HRanker ) {
