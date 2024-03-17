@@ -37,6 +37,10 @@ public class PostingsList {
         String[] entries = postingsList.split("!");
         ArrayList<String> postingsEntries = new ArrayList<>(Arrays.asList(entries));
 
+        if (postingsList.isEmpty()) {
+            return null;
+        }
+
         for (String entry : postingsEntries) {
             String[] dataStr = entry.split(":");
             String docID = dataStr[0], posStr = dataStr[1];
