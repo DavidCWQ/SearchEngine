@@ -7,9 +7,7 @@
 
 package ir;
 
-import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.io.Serializable;
 
 public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
@@ -75,9 +73,9 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
      *  Calculate the log-freq weight of term in doc.
      *  @return the log frequency weight of the term in this doc
      */
-    public double getLogFreqWeight() {
+    public double getTermFreqWeight( boolean logFreq ) {
         int tf = this.getWordCount();
-        return tf > 0 ? Math.log10(tf) + 1D : 0D;
+        return tf > 0 ? (logFreq ? Math.log10(tf) + 1D : tf) : 0D;
     }
 
     //
@@ -85,4 +83,3 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
     //
 
 }
-

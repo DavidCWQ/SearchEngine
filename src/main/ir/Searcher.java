@@ -148,7 +148,7 @@ public class Searcher {
      */
     private double getInvDocFreq( String term ) {
         double n = index.docLengths.size();
-        double df = index.getPostings(term).size();
+        double df = index.getPostings(term).getList().size();
         return Math.log10(n/df);
     }
 
@@ -218,27 +218,53 @@ public class Searcher {
                                  RankingType rankingType, NormalizationType normType) {
         switch (rankingType) {
             case TF_IDF: {
-                double score1 = doc.getLogFreqWeight() * queryWeight * getInvDocFreq(term);
-                // TF-IDF res Normalization
-                int docLength = index.docLengths.get(doc.docID);
-                double eucLength = index.docEucLengths.get(doc.docID);
-                return score1 / (normType == NormalizationType.EUCLIDEAN? eucLength : docLength);
+                return getCosineScore(doc, term, normType) * queryWeight;
             }
             case PAGERANK: {
                 return (Math.exp(10 * index.docRanks.get(doc.docID)) - 0.99) * queryWeight;
             }
             case COMBINATION: {
                 // Calculate combined score using a weighted combination of TF-IDF and PageRank.
-                double score1 = doc.getLogFreqWeight() * queryWeight * getInvDocFreq(term);
+                double score1 = getCosineScore(doc, term, normType) * queryWeight;
                 double score2 = (Math.exp(10 * index.docRanks.get(doc.docID)) - 0.99) * queryWeight;
-                // TF-IDF res Normalization
-                int docLength = index.docLengths.get(doc.docID);
-                double eucLength = index.docEucLengths.get(doc.docID);
-                score1 /= (normType == NormalizationType.EUCLIDEAN ? eucLength : docLength);
                 return score1 * (1 - RANK_RATIO) + score2 * RANK_RATIO;
             }
             default:
                 throw new IllegalArgumentException();
         }
+    }
+
+    private double getCosineScore(PostingsEntry doc, String term,
+                                  NormalizationType normType) {
+        double termFreq, docLength;
+
+        switch ( normType ) {
+            case NUMBER_OF_WORDS:
+            case EUCLIDEAN:
+                termFreq = doc.getTermFreqWeight(false);
+                break;
+            case NUMBER_OF_WORDS_WITH_LOG_TF:
+            case EUCLIDEAN_WITH_LOG_TF:
+                termFreq = doc.getTermFreqWeight(true);
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+
+        // Score Normalization
+        switch ( normType ) {
+            case NUMBER_OF_WORDS:
+            case NUMBER_OF_WORDS_WITH_LOG_TF:
+                docLength = (double) index.docLengths.get(doc.docID);
+                break;
+            case EUCLIDEAN:
+            case EUCLIDEAN_WITH_LOG_TF:
+                docLength = index.docEucLengths.get(doc.docID);
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+
+        return termFreq * getInvDocFreq(term) / docLength;
     }
 }

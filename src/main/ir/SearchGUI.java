@@ -76,6 +76,10 @@ public class SearchGUI extends JFrame {
     JRadioButtonMenuItem hitsRankItem = new JRadioButtonMenuItem( "HITS-Rank" );
     JRadioButtonMenuItem numberOfWordsItem = new JRadioButtonMenuItem( "Number of words" );
     JRadioButtonMenuItem euclideanLengthItem = new JRadioButtonMenuItem( "Euclidean length" );
+    JRadioButtonMenuItem numberOfWordsWithLogTFItem =
+            new JRadioButtonMenuItem( "Number of words (LogTF)" );
+    JRadioButtonMenuItem euclideanLengthWithLogTFItem =
+            new JRadioButtonMenuItem( "Euclidean length (LogTF)" );
     ButtonGroup queries = new ButtonGroup();
     ButtonGroup ranking = new ButtonGroup();
     ButtonGroup normalization = new ButtonGroup();
@@ -118,6 +122,8 @@ public class SearchGUI extends JFrame {
         rankingMenu.add( hitsRankItem );
         normalizationMenu.add(numberOfWordsItem);
         normalizationMenu.add(euclideanLengthItem);
+        normalizationMenu.add(numberOfWordsWithLogTFItem);
+        normalizationMenu.add(euclideanLengthWithLogTFItem);
         queries.add( intersectionItem );
         queries.add( phraseItem );
         queries.add( rankedItem );
@@ -127,6 +133,8 @@ public class SearchGUI extends JFrame {
         ranking.add( hitsRankItem );
         normalization.add(numberOfWordsItem);
         normalization.add(euclideanLengthItem);
+        normalization.add(numberOfWordsWithLogTFItem);
+        normalization.add(euclideanLengthWithLogTFItem);
         intersectionItem.setSelected( true );
         tfidfItem.setSelected( true );
         numberOfWordsItem.setSelected(true);
@@ -285,6 +293,19 @@ public class SearchGUI extends JFrame {
             }
         };
         euclideanLengthItem.addActionListener( setEuclideanNormalization );
+        Action setNumberOfWordsWithLogTFNormalization = new AbstractAction() {
+            public void actionPerformed( ActionEvent e ) {
+                normType = NormalizationType.NUMBER_OF_WORDS_WITH_LOG_TF;
+            }
+        };
+        numberOfWordsWithLogTFItem.addActionListener( setNumberOfWordsWithLogTFNormalization );
+
+        Action setEuclideanWithLogTFNormalization = new AbstractAction() {
+            public void actionPerformed( ActionEvent e ) {
+                normType = NormalizationType.EUCLIDEAN_WITH_LOG_TF;
+            }
+        };
+        euclideanLengthWithLogTFItem.addActionListener( setEuclideanWithLogTFNormalization );
 
     }
 

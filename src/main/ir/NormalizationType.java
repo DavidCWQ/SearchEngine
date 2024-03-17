@@ -12,5 +12,5 @@ package ir;
  *  the course. 
  */
 public enum NormalizationType {
-    NUMBER_OF_WORDS, EUCLIDEAN
+    NUMBER_OF_WORDS, EUCLIDEAN, NUMBER_OF_WORDS_WITH_LOG_TF, EUCLIDEAN_WITH_LOG_TF
 }
