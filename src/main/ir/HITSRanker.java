@@ -242,6 +242,7 @@ public class HITSRanker {
         hubs = new HashMap<>();
         authorities = new HashMap<>();
 
+        // Expand the root set to base set.
         HashSet<Integer> baseSet = new HashSet<>();
         for (String title : titles) {
             // Get the rank ID from docTitle

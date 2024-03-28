@@ -174,6 +174,7 @@ public class Engine {
                     if (i < args.length) {
                         link_file = TITLE_DIR + args[i++];
                     }
+                    break;
                 case "-ni":
                     i++;
                     is_indexing = false;
