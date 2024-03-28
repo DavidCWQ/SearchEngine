@@ -98,6 +98,7 @@ public class Engine {
                 for (String dirName : dirNames) {
                     File dokDir = new File(dirName);
                     indexer.processFiles(dokDir, is_indexing);
+                    indexer.calcEucLengths(is_indexing);
                     /*
                      * MY CODE here (merge scalable persistent hashed index). Otherwise,
                      * Exception in thread "main" java.lang.OutOfMemoryError: GC overhead limit exceeded

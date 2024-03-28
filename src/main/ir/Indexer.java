@@ -70,28 +70,49 @@ public class Indexer {
                     try {
                         Reader reader = new InputStreamReader( new FileInputStream(f), StandardCharsets.UTF_8 );
                         Tokenizer tok = new Tokenizer( reader, true, false, true, patterns_file );
-                        HashMap<String, Integer> termFreq = new HashMap<String, Integer>();
                         int offset = 0;
                         while ( tok.hasMoreTokens() ) {
                             String token = tok.nextToken();
                             insertIntoIndex( docID, token, offset++ );
-                            termFreq.compute(token, (key, value) -> (value == null) ? 1 : value + 1);
                         }
                         index.docNames.put( docID, f.getPath() );
                         index.docLengths.put( docID, offset );
-                        // NEW CODE HERE.
-                        double sum = 0.0;
-                        for (double sumComponent : termFreq.values()) {
-                            sum += Math.pow(sumComponent, 2);
-                        }
-                        index.docEucLengths.put(docID, Math.pow(sum, 0.5));
-                        // NEW CODE ENDS.
                         reader.close();
                     } catch ( IOException e ) {
                         System.err.println( "Warning: IOException during indexing." );
                     }
                 }
             }
+        }
+    }
+
+    /** Calculate the Euclidean length of each document vector in TF-IDF space */
+    public void calcEucLengths( boolean is_indexing ) {
+        if (is_indexing) {
+            System.out.println( "Computing EucLength..." );
+            for (Integer docID : index.docNames.keySet()) {
+                try {
+                    String f = index.docNames.get(docID);
+                    Reader reader = new InputStreamReader( new FileInputStream(f), StandardCharsets.UTF_8 );
+                    Tokenizer tok = new Tokenizer( reader, true, false, true, patterns_file );
+                    HashMap<String, Integer> termFreq = new HashMap<String, Integer>();
+                    while ( tok.hasMoreTokens() ) {
+                        String token = tok.nextToken();
+                        termFreq.compute(token, (key, value) -> (value == null) ? 1 : value + 1);
+                    }
+                    // NEW CODE HERE.
+                    double sum = 0.0;
+                    for (String term : termFreq.keySet()) {
+                        sum += Math.pow(termFreq.get(term) * index.getInvDocFreq(term), 2);
+                    }
+                    index.docEucLengths.put(docID, Math.pow(sum, 0.5));
+                    // NEW CODE ENDS.
+                    reader.close();
+                } catch ( IOException e ) {
+                    System.err.println( "Warning: IOException during EucLength Calculation." );
+                }
+            }
+            System.out.println( "EucLength are saved in docInfo." );
         }
     }
 

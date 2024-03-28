@@ -36,6 +36,17 @@ public interface Index {
     /** Returns the postings for a given term. */
     public PostingsList getPostings( String token );
 
+    /**
+     *  Calculate Inverse Document Frequency.
+     *  @param term the given term t
+     *  @return idf = log(N/df)
+     */
+    default double getInvDocFreq( String term ) {
+        double n = docLengths.size();
+        double df = getPostings(term).getList().size();
+        return Math.log10(n/df);
+    }
+
     /** This method is called on exit. */
     public void cleanup();
 

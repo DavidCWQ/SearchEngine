@@ -142,17 +142,6 @@ public class Searcher {
     }
 
     /**
-     *  Calculate Inverse Document Frequency.
-     *  @param term the given term t
-     *  @return idf = log(N/df)
-     */
-    private double getInvDocFreq( String term ) {
-        double n = index.docLengths.size();
-        double df = index.getPostings(term).getList().size();
-        return Math.log10(n/df);
-    }
-
-    /**
      *  Calculates the ranking scores for documents based on the given query, and
      *  ranking type, and normalization type. TF-IDF type computes vector space
      *  scores by the product of the query vector and doc vectors. (P136/173)
@@ -265,6 +254,6 @@ public class Searcher {
                 throw new IllegalArgumentException();
         }
 
-        return termFreq * getInvDocFreq(term) / docLength;
+        return termFreq * index.getInvDocFreq(term) / docLength;
     }
 }
