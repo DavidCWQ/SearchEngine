@@ -40,6 +40,13 @@ public class Searcher {
      */
     public PostingsList search( Query query, QueryType queryType, RankingType rankingType,
                                 NormalizationType normType ) {
+        // Task 3.3 update starts.
+        String[] kGram = query.queryTerm.stream()
+                .map(queryTerm -> queryTerm.term) // map to query term
+                .toArray(String[]::new);
+        kgIndex.searchKGram(kGram);
+        // Task 3.3 update ends.
+
         switch (queryType) {
             case INTERSECTION_QUERY:
                 return searchIntersection(query);

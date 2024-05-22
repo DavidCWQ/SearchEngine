@@ -237,7 +237,7 @@ public class HITSRanker {
      *
      *  @param      titles  The titles of the documents in the root set
      */
-    private void iterate( String[] titles, boolean print ) {
+    private HashSet<Integer> iterate( String[] titles, boolean print ) {
         // YOUR CODE HERE
         hubs = new HashMap<>();
         authorities = new HashMap<>();
@@ -279,9 +279,10 @@ public class HITSRanker {
             Double[] next = getCurrentScores();
 
             // Choose hubs for convergence judgement
-            if (isConverge( prev, next, print )) return;
+            if (isConverge( prev, next, print )) return baseSet;
         }
         System.err.println( "Exit iteration." );
+        return baseSet;
     }
 
 
@@ -300,11 +301,11 @@ public class HITSRanker {
             titles.add(title.substring(title.lastIndexOf(File.separator) + 1));
         }
 
-        iterate(titles.toArray(new String[0]), false);
+        HashSet<Integer> titleIDs = iterate(titles.toArray(new String[0]), true);
 
         PostingsList result = null;
-        for (String title : titles) {
-            int _i = titleToId.get(title), i = index.docIDs.get(title);
+        for (Integer fake_id : titleIDs) {
+            int _i = fake_id, i = index.docIDs.get(idToTitle.get(fake_id));
             double docScore = Math.sqrt(authorities.get(_i) * hubs.get(_i)); // Geometric Mean
             // If it is the first intersection
             if (result == null) { result = new PostingsList(new PostingsEntry(i, docScore)); }

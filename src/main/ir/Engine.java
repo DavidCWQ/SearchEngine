@@ -26,7 +26,7 @@ public class Engine {
     HITSRanker HRanker;
 
     /** K-gram index */
-    KGramIndex kgIndex;
+    KGramIndex kgIndex = new KGramIndex(2); // Task 3.3 update here.
 
     /** The searcher used to search the index. */
     Searcher searcher;
